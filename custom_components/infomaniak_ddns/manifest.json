@@ -2,7 +2,7 @@
   "domain": "infomaniak_ddns",
   "name": "Infomaniak DDNS",
   "version": "1.0.0",
-  "documentation": "https://github.com/yourrepo/infomaniak_ddns",
+  "documentation": "https://github.com/cy-bertrand/Infomaniak-dyndns-ha",
   "requirements": [],
   "dependencies": [],
   "codeowners": [],
