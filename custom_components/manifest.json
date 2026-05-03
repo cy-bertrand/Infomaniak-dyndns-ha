@@ -1,0 +1,12 @@
+{
+  "domain": "infomaniak_ddns",
+  "name": "Infomaniak DDNS",
+  "version": "1.0.0",
+  "documentation": "https://github.com/yourrepo/infomaniak_ddns",
+  "requirements": [],
+  "dependencies": [],
+  "codeowners": [],
+  "config_flow": true,
+  "iot_class": "cloud_push",
+  "integration_type": "service"
+}
