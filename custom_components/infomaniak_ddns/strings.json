@@ -1,0 +1,46 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configurer Infomaniak DDNS",
+        "description": "Entrez les paramètres de votre DDNS Infomaniak. L'URL de mise à jour est présélectionnée avec la valeur par défaut.",
+        "data": {
+          "update_url": "URL de mise à jour DDNS",
+          "hostname": "Nom d'hôte DDNS (ex: myhost.example.com)",
+          "username": "Nom d'utilisateur DDNS",
+          "password": "Mot de passe DDNS",
+          "update_interval": "Intervalle de mise à jour (minutes)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossible de se connecter au serveur DDNS Infomaniak. Vérifiez l'URL de mise à jour.",
+      "invalid_auth": "Authentification invalide. Vérifiez le nom d'utilisateur et le mot de passe.",
+      "invalid_hostname": "Nom d'hôte invalide ou introuvable. Vérifiez le FQDN.",
+      "unknown": "Erreur inattendue. Consultez les logs pour plus de détails."
+    },
+    "abort": {
+      "already_configured": "Cette entrée DDNS est déjà configurée."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options Infomaniak DDNS",
+        "data": {
+          "update_url": "URL de mise à jour DDNS",
+          "hostname": "Nom d'hôte DDNS",
+          "username": "Nom d'utilisateur DDNS",
+          "password": "Mot de passe DDNS",
+          "update_interval": "Intervalle de mise à jour (minutes)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossible de se connecter.",
+      "invalid_auth": "Authentification invalide.",
+      "invalid_hostname": "Nom d'hôte invalide.",
+      "unknown": "Erreur inattendue."
+    }
+  }
+}
