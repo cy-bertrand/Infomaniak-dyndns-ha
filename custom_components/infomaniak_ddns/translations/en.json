@@ -3,21 +3,38 @@
     "step": {
       "user": {
         "title": "Configure Infomaniak DDNS",
-        "description": "Enter your Infomaniak DDNS settings. The update URL is pre-filled with the default value.",
+        "description": "Enter connection settings and choose the IP source.",
         "data": {
           "update_url": "DDNS update URL",
-          "hostname": "DDNS hostname (e.g. myhost.example.com)",
+          "hostname": "DDNS hostname (e.g. home.mydomain.com)",
           "username": "DDNS username",
           "password": "DDNS password",
-          "update_interval": "Update interval (minutes)"
+          "update_interval": "Update interval (minutes)",
+          "ip_mode": "IP address source"
+        }
+      },
+      "static_ip": {
+        "title": "Static IP address",
+        "description": "Enter the IPv4 address to register for {hostname}.",
+        "data": {
+          "ip_static": "IPv4 address (e.g. 1.2.3.4)"
+        }
+      },
+      "entity_ip": {
+        "title": "Home Assistant entity",
+        "description": "Enter the entity_id of a sensor whose state is an IPv4 address (e.g. sensor.wan_ip). The IP will be read on each update.",
+        "data": {
+          "ip_entity": "IP sensor entity_id"
         }
       }
     },
     "error": {
-      "cannot_connect": "Cannot connect to Infomaniak DDNS server. Check the update URL.",
-      "invalid_auth": "Invalid authentication. Check username and password.",
-      "invalid_hostname": "Invalid or unknown hostname. Check the FQDN.",
-      "unknown": "Unexpected error. Check logs for details."
+      "cannot_connect": "Cannot connect to DDNS server. Check the URL.",
+      "invalid_auth": "Invalid credentials. Check DDNS username and password.",
+      "invalid_hostname": "Invalid or unknown hostname on Infomaniak.",
+      "invalid_ip": "Invalid IPv4 address. Expected format: 1.2.3.4",
+      "invalid_entity": "Invalid or empty entity_id.",
+      "unknown": "Unexpected error. Check HA logs."
     },
     "abort": {
       "already_configured": "This DDNS entry is already configured."
@@ -32,14 +49,29 @@
           "hostname": "DDNS hostname",
           "username": "DDNS username",
           "password": "DDNS password",
-          "update_interval": "Update interval (minutes)"
+          "update_interval": "Update interval (minutes)",
+          "ip_mode": "IP address source"
+        }
+      },
+      "static_ip": {
+        "title": "Static IP address",
+        "data": {
+          "ip_static": "IPv4 address"
+        }
+      },
+      "entity_ip": {
+        "title": "Home Assistant entity",
+        "data": {
+          "ip_entity": "IP sensor entity_id"
         }
       }
     },
     "error": {
       "cannot_connect": "Cannot connect.",
-      "invalid_auth": "Invalid authentication.",
+      "invalid_auth": "Invalid credentials.",
       "invalid_hostname": "Invalid hostname.",
+      "invalid_ip": "Invalid IPv4 address.",
+      "invalid_entity": "Invalid entity_id.",
       "unknown": "Unexpected error."
     }
   }
