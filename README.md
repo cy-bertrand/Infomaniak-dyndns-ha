@@ -10,9 +10,11 @@ Mise à jour automatique de votre enregistrement DNS dynamique (DDNS) Infomaniak
 1. Copiez le dossier `custom_components/infomaniak_ddns/` dans `<config>/custom_components/`
 2. Redémarrez Home Assistant
 
-### Via HACS
-1. HACS → Intégrations → ⋮ → Dépôts personnalisés → ajoutez l'URL du dépôt
-2. Installez **Infomaniak DDNS** → Redémarrez HA
+### Via HACS (recommandé)
+1. Dans HACS, allez dans **Intégrations** → bouton **⋮** → **Dépôts personnalisés**
+2. Ajoutez l'URL du dépôt, catégorie **Intégration**
+3. Installez **Infomaniak DDNS**
+4. Redémarrez Home Assistant
 
 ---
 
