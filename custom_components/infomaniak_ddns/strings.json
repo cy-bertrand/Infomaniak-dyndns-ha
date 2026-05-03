@@ -3,21 +3,38 @@
     "step": {
       "user": {
         "title": "Configurer Infomaniak DDNS",
-        "description": "Entrez les paramètres de votre DDNS Infomaniak. L'URL de mise à jour est présélectionnée avec la valeur par défaut.",
+        "description": "Entrez les paramètres de connexion et choisissez la source IP.",
         "data": {
           "update_url": "URL de mise à jour DDNS",
-          "hostname": "Nom d'hôte DDNS (ex: myhost.example.com)",
+          "hostname": "Nom d'hôte DDNS (ex: home.mondomaine.com)",
           "username": "Nom d'utilisateur DDNS",
           "password": "Mot de passe DDNS",
-          "update_interval": "Intervalle de mise à jour (minutes)"
+          "update_interval": "Intervalle de mise à jour (minutes)",
+          "ip_mode": "Source de l'adresse IP"
+        }
+      },
+      "static_ip": {
+        "title": "Adresse IP fixe",
+        "description": "Saisissez l'adresse IPv4 à enregistrer pour {hostname}.",
+        "data": {
+          "ip_static": "Adresse IPv4 (ex: 1.2.3.4)"
+        }
+      },
+      "entity_ip": {
+        "title": "Entité Home Assistant",
+        "description": "Entrez l'entity_id d'un capteur dont l'état est une adresse IPv4 (ex: sensor.ip_wan). L'IP sera lue à chaque mise à jour.",
+        "data": {
+          "ip_entity": "entity_id du capteur IP"
         }
       }
     },
     "error": {
-      "cannot_connect": "Impossible de se connecter au serveur DDNS Infomaniak. Vérifiez l'URL de mise à jour.",
-      "invalid_auth": "Authentification invalide. Vérifiez le nom d'utilisateur et le mot de passe.",
-      "invalid_hostname": "Nom d'hôte invalide ou introuvable. Vérifiez le FQDN.",
-      "unknown": "Erreur inattendue. Consultez les logs pour plus de détails."
+      "cannot_connect": "Impossible de contacter le serveur DDNS. Vérifiez l'URL.",
+      "invalid_auth": "Identifiants incorrects. Vérifiez login et mot de passe DDNS.",
+      "invalid_hostname": "Nom d'hôte invalide ou inconnu sur Infomaniak.",
+      "invalid_ip": "Adresse IPv4 invalide. Format attendu : 1.2.3.4",
+      "invalid_entity": "entity_id invalide ou vide.",
+      "unknown": "Erreur inattendue. Consultez les logs HA."
     },
     "abort": {
       "already_configured": "Cette entrée DDNS est déjà configurée."
@@ -32,14 +49,29 @@
           "hostname": "Nom d'hôte DDNS",
           "username": "Nom d'utilisateur DDNS",
           "password": "Mot de passe DDNS",
-          "update_interval": "Intervalle de mise à jour (minutes)"
+          "update_interval": "Intervalle de mise à jour (minutes)",
+          "ip_mode": "Source de l'adresse IP"
+        }
+      },
+      "static_ip": {
+        "title": "Adresse IP fixe",
+        "data": {
+          "ip_static": "Adresse IPv4"
+        }
+      },
+      "entity_ip": {
+        "title": "Entité Home Assistant",
+        "data": {
+          "ip_entity": "entity_id du capteur IP"
         }
       }
     },
     "error": {
-      "cannot_connect": "Impossible de se connecter.",
-      "invalid_auth": "Authentification invalide.",
+      "cannot_connect": "Impossible de contacter le serveur DDNS.",
+      "invalid_auth": "Identifiants incorrects.",
       "invalid_hostname": "Nom d'hôte invalide.",
+      "invalid_ip": "Adresse IPv4 invalide.",
+      "invalid_entity": "entity_id invalide.",
       "unknown": "Erreur inattendue."
     }
   }

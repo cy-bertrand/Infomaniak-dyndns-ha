@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 from typing import Any
 
 import aiohttp
@@ -13,6 +14,7 @@ from homeassistant import config_entries
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers import selector
 
 from .const import (
     DOMAIN,
@@ -21,61 +23,115 @@ from .const import (
     CONF_USERNAME,
     CONF_PASSWORD,
     CONF_UPDATE_INTERVAL,
+    CONF_IP_MODE,
+    CONF_IP_STATIC,
+    CONF_IP_ENTITY,
     DEFAULT_UPDATE_URL,
     DEFAULT_UPDATE_INTERVAL,
+    IP_MODE_AUTO,
+    IP_MODE_STATIC,
+    IP_MODE_ENTITY,
 )
 
 _LOGGER = logging.getLogger(__name__)
 
+_IPV4_RE = re.compile(r"^(\d{1,3}\.){3}\d{1,3}$")
 
-async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str, Any]:
-    """Validate the user input by performing a test DDNS update call."""
+
+def _is_valid_ipv4(ip: str) -> bool:
+    if not _IPV4_RE.match(ip):
+        return False
+    return all(0 <= int(o) <= 255 for o in ip.split("."))
+
+
+async def _test_connection(hass: HomeAssistant, data: dict[str, Any]) -> dict[str, Any]:
+    """Test connection to Infomaniak DDNS API."""
     update_url = data.get(CONF_UPDATE_URL, DEFAULT_UPDATE_URL)
     hostname = data[CONF_HOSTNAME]
     username = data[CONF_USERNAME]
     password = data[CONF_PASSWORD]
 
     url = f"{update_url}?hostname={hostname}"
-    session = async_get_clientsession(hass)
 
+    # Inject IP if static mode
+    ip_mode = data.get(CONF_IP_MODE, IP_MODE_AUTO)
+    if ip_mode == IP_MODE_STATIC:
+        ip = data.get(CONF_IP_STATIC, "").strip()
+        if ip:
+            url += f"&myip={ip}"
+
+    session = async_get_clientsession(hass)
     try:
         async with async_timeout.timeout(15):
-            resp = await session.post(
-                url,
-                auth=aiohttp.BasicAuth(username, password),
-            )
+            resp = await session.post(url, auth=aiohttp.BasicAuth(username, password))
             text = (await resp.text()).strip()
-            _LOGGER.debug("Validation response: %s", text)
-
+            _LOGGER.debug("Config flow validation response: %s", text)
             if text.startswith("badauth"):
                 raise InvalidAuth
             if text.startswith("nohost") or text.startswith("notfqdn"):
                 raise InvalidHostname
             if text.startswith("911"):
                 raise CannotConnect
-            # good or nochg are success
             return {"title": f"Infomaniak DDNS – {hostname}"}
-
     except asyncio.TimeoutError as err:
         raise CannotConnect from err
     except aiohttp.ClientError as err:
         raise CannotConnect from err
 
 
+def _base_schema(defaults: dict) -> vol.Schema:
+    """Schema for step 1 : connection + IP mode."""
+    return vol.Schema({
+        vol.Optional(CONF_UPDATE_URL, default=defaults.get(CONF_UPDATE_URL, DEFAULT_UPDATE_URL)): str,
+        vol.Required(CONF_HOSTNAME, default=defaults.get(CONF_HOSTNAME, "")): str,
+        vol.Required(CONF_USERNAME, default=defaults.get(CONF_USERNAME, "")): str,
+        vol.Required(CONF_PASSWORD, default=defaults.get(CONF_PASSWORD, "")): str,
+        vol.Optional(CONF_UPDATE_INTERVAL, default=defaults.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)):
+            vol.All(vol.Coerce(int), vol.Range(min=1, max=1440)),
+        vol.Optional(CONF_IP_MODE, default=defaults.get(CONF_IP_MODE, IP_MODE_AUTO)):
+            selector.selector({"select": {"options": [
+                {"value": IP_MODE_AUTO,   "label": "Auto — IP WAN détectée par Infomaniak (recommandé)"},
+                {"value": IP_MODE_STATIC, "label": "IP fixe — saisie manuelle"},
+                {"value": IP_MODE_ENTITY, "label": "Entité HA — lire l'IP depuis un capteur"},
+            ]}}),
+    })
+
+
+def _static_ip_schema(defaults: dict) -> vol.Schema:
+    return vol.Schema({
+        vol.Required(CONF_IP_STATIC, default=defaults.get(CONF_IP_STATIC, "")): str,
+    })
+
+
+def _entity_schema(defaults: dict) -> vol.Schema:
+    return vol.Schema({
+        vol.Required(CONF_IP_ENTITY, default=defaults.get(CONF_IP_ENTITY, "")): str,
+    })
+
+
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for Infomaniak DDNS."""
+    """Handle config flow for Infomaniak DDNS."""
 
     VERSION = 1
 
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Handle the initial step."""
+    def __init__(self):
+        self._data: dict[str, Any] = {}
+
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         errors: dict[str, str] = {}
 
         if user_input is not None:
+            self._data.update(user_input)
+            ip_mode = user_input.get(CONF_IP_MODE, IP_MODE_AUTO)
+
+            if ip_mode == IP_MODE_STATIC:
+                return await self.async_step_static_ip()
+            if ip_mode == IP_MODE_ENTITY:
+                return await self.async_step_entity_ip()
+
+            # Auto mode: validate immediately
             try:
-                info = await validate_input(self.hass, user_input)
+                info = await _test_connection(self.hass, self._data)
             except CannotConnect:
                 errors["base"] = "cannot_connect"
             except InvalidAuth:
@@ -86,51 +142,103 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
             else:
-                return self.async_create_entry(title=info["title"], data=user_input)
+                return self.async_create_entry(title=info["title"], data=self._data)
 
         return self.async_show_form(
             step_id="user",
-            data_schema=vol.Schema(
-                {
-                    vol.Optional(
-                        CONF_UPDATE_URL, default=DEFAULT_UPDATE_URL
-                    ): str,
-                    vol.Required(CONF_HOSTNAME): str,
-                    vol.Required(CONF_USERNAME): str,
-                    vol.Required(CONF_PASSWORD): str,
-                    vol.Optional(
-                        CONF_UPDATE_INTERVAL, default=DEFAULT_UPDATE_INTERVAL
-                    ): vol.All(vol.Coerce(int), vol.Range(min=1, max=1440)),
-                }
-            ),
+            data_schema=_base_schema(self._data),
             errors=errors,
+        )
+
+    async def async_step_static_ip(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            ip = user_input.get(CONF_IP_STATIC, "").strip()
+            if not _is_valid_ipv4(ip):
+                errors[CONF_IP_STATIC] = "invalid_ip"
+            else:
+                self._data.update(user_input)
+                try:
+                    info = await _test_connection(self.hass, self._data)
+                except CannotConnect:
+                    errors["base"] = "cannot_connect"
+                except InvalidAuth:
+                    errors[CONF_PASSWORD] = "invalid_auth"
+                except InvalidHostname:
+                    errors[CONF_HOSTNAME] = "invalid_hostname"
+                except Exception:
+                    _LOGGER.exception("Unexpected exception")
+                    errors["base"] = "unknown"
+                else:
+                    return self.async_create_entry(title=info["title"], data=self._data)
+
+        return self.async_show_form(
+            step_id="static_ip",
+            data_schema=_static_ip_schema(self._data),
+            errors=errors,
+            description_placeholders={"hostname": self._data.get(CONF_HOSTNAME, "")},
+        )
+
+    async def async_step_entity_ip(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            entity_id = user_input.get(CONF_IP_ENTITY, "").strip()
+            if not entity_id:
+                errors[CONF_IP_ENTITY] = "invalid_entity"
+            else:
+                self._data.update(user_input)
+                # Validate connection in auto mode (entity may not be available yet)
+                test_data = {**self._data, CONF_IP_MODE: IP_MODE_AUTO}
+                try:
+                    info = await _test_connection(self.hass, test_data)
+                except CannotConnect:
+                    errors["base"] = "cannot_connect"
+                except InvalidAuth:
+                    errors[CONF_PASSWORD] = "invalid_auth"
+                except InvalidHostname:
+                    errors[CONF_HOSTNAME] = "invalid_hostname"
+                except Exception:
+                    _LOGGER.exception("Unexpected exception")
+                    errors["base"] = "unknown"
+                else:
+                    return self.async_create_entry(title=info["title"], data=self._data)
+
+        return self.async_show_form(
+            step_id="entity_ip",
+            data_schema=_entity_schema(self._data),
+            errors=errors,
+            description_placeholders={"hostname": self._data.get(CONF_HOSTNAME, "")},
         )
 
     @staticmethod
     @callback
     def async_get_options_flow(config_entry: config_entries.ConfigEntry):
-        """Get the options flow."""
         return OptionsFlowHandler(config_entry)
 
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
-    """Handle options flow."""
+    """Options flow."""
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize options flow."""
         self.config_entry = config_entry
+        self._data: dict[str, Any] = dict(config_entry.data)
 
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Manage options."""
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            # Merge with existing data for validation
-            merged = {**self.config_entry.data, **user_input}
+            self._data.update(user_input)
+            ip_mode = user_input.get(CONF_IP_MODE, IP_MODE_AUTO)
+            if ip_mode == IP_MODE_STATIC:
+                return await self.async_step_static_ip()
+            if ip_mode == IP_MODE_ENTITY:
+                return await self.async_step_entity_ip()
+            # Auto
+            merged = {**self.config_entry.data, **self._data}
             try:
-                await validate_input(self.hass, merged)
+                await _test_connection(self.hass, merged)
             except CannotConnect:
                 errors["base"] = "cannot_connect"
             except InvalidAuth:
@@ -141,49 +249,82 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
             else:
-                self.hass.config_entries.async_update_entry(
-                    self.config_entry, data={**self.config_entry.data, **user_input}
-                )
+                self.hass.config_entries.async_update_entry(self.config_entry, data=merged)
                 return self.async_create_entry(title="", data={})
 
-        current = self.config_entry.data
         return self.async_show_form(
             step_id="init",
-            data_schema=vol.Schema(
-                {
-                    vol.Optional(
-                        CONF_UPDATE_URL,
-                        default=current.get(CONF_UPDATE_URL, DEFAULT_UPDATE_URL),
-                    ): str,
-                    vol.Required(
-                        CONF_HOSTNAME,
-                        default=current.get(CONF_HOSTNAME, ""),
-                    ): str,
-                    vol.Required(
-                        CONF_USERNAME,
-                        default=current.get(CONF_USERNAME, ""),
-                    ): str,
-                    vol.Required(
-                        CONF_PASSWORD,
-                        default=current.get(CONF_PASSWORD, ""),
-                    ): str,
-                    vol.Optional(
-                        CONF_UPDATE_INTERVAL,
-                        default=current.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL),
-                    ): vol.All(vol.Coerce(int), vol.Range(min=1, max=1440)),
-                }
-            ),
+            data_schema=_base_schema(self._data),
+            errors=errors,
+        )
+
+    async def async_step_static_ip(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            ip = user_input.get(CONF_IP_STATIC, "").strip()
+            if not _is_valid_ipv4(ip):
+                errors[CONF_IP_STATIC] = "invalid_ip"
+            else:
+                self._data.update(user_input)
+                merged = {**self.config_entry.data, **self._data}
+                try:
+                    await _test_connection(self.hass, merged)
+                except CannotConnect:
+                    errors["base"] = "cannot_connect"
+                except InvalidAuth:
+                    errors[CONF_PASSWORD] = "invalid_auth"
+                except InvalidHostname:
+                    errors[CONF_HOSTNAME] = "invalid_hostname"
+                except Exception:
+                    errors["base"] = "unknown"
+                else:
+                    self.hass.config_entries.async_update_entry(self.config_entry, data=merged)
+                    return self.async_create_entry(title="", data={})
+
+        return self.async_show_form(
+            step_id="static_ip",
+            data_schema=_static_ip_schema(self._data),
+            errors=errors,
+        )
+
+    async def async_step_entity_ip(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            entity_id = user_input.get(CONF_IP_ENTITY, "").strip()
+            if not entity_id:
+                errors[CONF_IP_ENTITY] = "invalid_entity"
+            else:
+                self._data.update(user_input)
+                merged = {**self.config_entry.data, **self._data}
+                test_data = {**merged, CONF_IP_MODE: IP_MODE_AUTO}
+                try:
+                    await _test_connection(self.hass, test_data)
+                except CannotConnect:
+                    errors["base"] = "cannot_connect"
+                except InvalidAuth:
+                    errors[CONF_PASSWORD] = "invalid_auth"
+                except InvalidHostname:
+                    errors[CONF_HOSTNAME] = "invalid_hostname"
+                except Exception:
+                    errors["base"] = "unknown"
+                else:
+                    self.hass.config_entries.async_update_entry(self.config_entry, data=merged)
+                    return self.async_create_entry(title="", data={})
+
+        return self.async_show_form(
+            step_id="entity_ip",
+            data_schema=_entity_schema(self._data),
             errors=errors,
         )
 
 
 class CannotConnect(Exception):
-    """Error to indicate we cannot connect."""
-
+    """Cannot connect."""
 
 class InvalidAuth(Exception):
-    """Error to indicate there is invalid auth."""
-
+    """Invalid auth."""
 
 class InvalidHostname(Exception):
-    """Error to indicate the hostname is invalid."""
+    """Invalid hostname."""

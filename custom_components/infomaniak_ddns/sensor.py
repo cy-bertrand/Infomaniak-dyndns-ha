@@ -7,7 +7,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, CONF_HOSTNAME
+from .const import DOMAIN, CONF_HOSTNAME, CONF_IP_MODE, IP_MODE_AUTO
 from . import InfomaniakDDNSCoordinator
 
 
@@ -16,9 +16,7 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Infomaniak DDNS sensors."""
     coordinator: InfomaniakDDNSCoordinator = hass.data[DOMAIN][entry.entry_id]
-
     async_add_entities([
         InfomaniakDDNSStatusSensor(coordinator, entry),
         InfomaniakDDNSIPSensor(coordinator, entry),
@@ -26,13 +24,7 @@ async def async_setup_entry(
 
 
 class InfomaniakDDNSBaseSensor(SensorEntity):
-    """Base sensor for Infomaniak DDNS."""
-
-    def __init__(
-        self,
-        coordinator: InfomaniakDDNSCoordinator,
-        entry: ConfigEntry,
-    ) -> None:
+    def __init__(self, coordinator: InfomaniakDDNSCoordinator, entry: ConfigEntry) -> None:
         self._coordinator = coordinator
         self._entry = entry
         self._hostname = entry.data[CONF_HOSTNAME]
@@ -58,8 +50,6 @@ class InfomaniakDDNSBaseSensor(SensorEntity):
 
 
 class InfomaniakDDNSStatusSensor(InfomaniakDDNSBaseSensor):
-    """Sensor showing last DDNS update status."""
-
     @property
     def unique_id(self) -> str:
         return f"{self._entry.entry_id}_status"
@@ -89,10 +79,13 @@ class InfomaniakDDNSStatusSensor(InfomaniakDDNSBaseSensor):
 
     @property
     def extra_state_attributes(self) -> dict:
+        ip_mode = self._entry.data.get(CONF_IP_MODE, IP_MODE_AUTO)
         return {
             "hostname": self._hostname,
             "last_response": self._coordinator.last_result,
             "last_error": self._coordinator.last_error,
+            "ip_source": self._coordinator.last_ip_source,
+            "ip_mode": ip_mode,
             "update_count": self._coordinator.update_count,
             "update_url": self._entry.data.get("update_url", "https://infomaniak.com/nic/update"),
             "update_interval_minutes": self._entry.data.get("update_interval", 5),
@@ -100,8 +93,6 @@ class InfomaniakDDNSStatusSensor(InfomaniakDDNSBaseSensor):
 
 
 class InfomaniakDDNSIPSensor(InfomaniakDDNSBaseSensor):
-    """Sensor showing the last registered IP."""
-
     @property
     def unique_id(self) -> str:
         return f"{self._entry.entry_id}_ip"
@@ -117,3 +108,10 @@ class InfomaniakDDNSIPSensor(InfomaniakDDNSBaseSensor):
     @property
     def native_value(self) -> str | None:
         return self._coordinator.last_ip
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        return {
+            "ip_source": self._coordinator.last_ip_source,
+            "ip_mode": self._entry.data.get(CONF_IP_MODE, IP_MODE_AUTO),
+        }
