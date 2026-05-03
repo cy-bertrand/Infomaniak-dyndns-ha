@@ -1,0 +1,46 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configure Infomaniak DDNS",
+        "description": "Enter your Infomaniak DDNS settings. The update URL is pre-filled with the default value.",
+        "data": {
+          "update_url": "DDNS update URL",
+          "hostname": "DDNS hostname (e.g. myhost.example.com)",
+          "username": "DDNS username",
+          "password": "DDNS password",
+          "update_interval": "Update interval (minutes)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to Infomaniak DDNS server. Check the update URL.",
+      "invalid_auth": "Invalid authentication. Check username and password.",
+      "invalid_hostname": "Invalid or unknown hostname. Check the FQDN.",
+      "unknown": "Unexpected error. Check logs for details."
+    },
+    "abort": {
+      "already_configured": "This DDNS entry is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Infomaniak DDNS Options",
+        "data": {
+          "update_url": "DDNS update URL",
+          "hostname": "DDNS hostname",
+          "username": "DDNS username",
+          "password": "DDNS password",
+          "update_interval": "Update interval (minutes)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect.",
+      "invalid_auth": "Invalid authentication.",
+      "invalid_hostname": "Invalid hostname.",
+      "unknown": "Unexpected error."
+    }
+  }
+}
