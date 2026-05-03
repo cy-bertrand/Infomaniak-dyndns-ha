@@ -3,9 +3,8 @@
   "name": "Infomaniak DDNS",
   "version": "1.0.0",
   "documentation": "https://github.com/cy-bertrand/Infomaniak-dyndns-ha",
-  "requirements": [],
-  "dependencies": [],
-  "codeowners": [],
+  "issue_tracker": "https://github.com/cy-bertrand/Infomaniak-dyndns-ha/issues",
+  "codeowners": ["@cy-bertrand"],
   "config_flow": true,
   "iot_class": "cloud_push",
   "integration_type": "service"
