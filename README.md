@@ -6,7 +6,7 @@
 [![HACS Action](https://github.com/cy-bertrand/Infomaniak-dyndns-ha/actions/workflows/hacs.yml/badge.svg)](https://github.com/cy-bertrand/Infomaniak-dyndns-ha/actions/workflows/hacs.yml)
 [![Hassfest](https://github.com/cy-bertrand/Infomaniak-dyndns-ha/actions/workflows/hassfest.yml/badge.svg)](https://github.com/cy-bertrand/Infomaniak-dyndns-ha/actions/workflows/hassfest.yml)
 
-[Français](#francais) | [English](#english)
+[Français](#) | [English](#english)
 
 Mise à jour automatique de votre enregistrement DNS dynamique (DDNS/DynDNS) Infomaniak depuis Home Assistant.  
 Supporte la détection automatique de l'IP WAN, une IP fixe, ou la lecture depuis une entité HA.
@@ -111,8 +111,7 @@ automation:
 ---
 
 ## English
-
-[Français](#) | [English](#english)
+[Français](#) | [English]
 
 # Infomaniak DynDNS — Home Assistant Integration
 
