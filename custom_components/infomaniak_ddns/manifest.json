@@ -7,6 +7,6 @@
   "codeowners": ["@cy-bertrand"],
   "config_flow": true,
   "iot_class": "cloud_push",
-  "integration_type": "service",
+  "integration_type": "hub",
   "requirements": []
 }
