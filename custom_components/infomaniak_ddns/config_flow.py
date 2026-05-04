@@ -221,9 +221,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class OptionsFlowHandler(config_entries.OptionsFlow):
     """Options flow."""
 
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        self.config_entry = config_entry
-        self._data: dict[str, Any] = dict(config_entry.data)
+    pass  # utiliser self.config_entry directement, fourni par HA 
+  #  def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+ #       self.config_entry = config_entry
+  #      self._data: dict[str, Any] = dict(config_entry.data)
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         errors: dict[str, str] = {}
