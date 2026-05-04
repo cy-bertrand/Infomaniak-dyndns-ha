@@ -1,6 +1,6 @@
 # Infomaniak DynDNS — Home Assistant Integration
 
-![Description de l'image](custom_components/infomaniak_ddns/brand/dark_logo.png)
+![Logo](custom_components/infomaniak_ddns/brand/dark_logo.png)
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
 [![HACS Action](https://github.com/cy-bertrand/Infomaniak-dyndns-ha/actions/workflows/hacs.yml/badge.svg)](https://github.com/cy-bertrand/Infomaniak-dyndns-ha/actions/workflows/hacs.yml)
