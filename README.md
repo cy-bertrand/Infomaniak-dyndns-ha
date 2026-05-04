@@ -72,7 +72,7 @@ Copiez le dossier `custom_components/infomaniak_ddns/` dans `<config>/custom_com
 3. Créer un enregistrement avec un **login/mot de passe DDNS dédié**
 4. Utiliser ces identifiants dans l'intégration (≠ identifiants admin)
 
-📖 [Documentation Infomaniak DDNS](https://www.infomaniak.com/fr/support/faq/2357)
+📖 [Documentation Infomaniak DDNS](https://faq.infomaniak.com/2357)
 
 ---
 
@@ -184,7 +184,7 @@ Copy the `custom_components/infomaniak_ddns/` folder into `<config>/custom_compo
 3. Create a record with a **dedicated DDNS login/password**
 4. Use these credentials in the integration (≠ admin credentials)
 
-📖 [Infomaniak DDNS Documentation](https://www.infomaniak.com/en/support/faq/2357)
+📖 [Infomaniak DDNS Documentation](https://www.infomaniak.com/en/support/faq/2357/discover-dyndns-with-an-infomaniak-domain)
 
 ---
 
