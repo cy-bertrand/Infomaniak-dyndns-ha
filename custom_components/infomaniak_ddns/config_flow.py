@@ -71,7 +71,7 @@ async def _test_connection(hass: HomeAssistant, data: dict[str, Any]) -> dict[st
                 raise InvalidHostname
             if text.startswith("911"):
                 raise CannotConnect
-            return {"title": f"Infomaniak DDNS \u2013 {hostname}"}
+            return {"title": f"Infomaniak DDNS - {hostname}"}
     except asyncio.TimeoutError as err:
         raise CannotConnect from err
     except aiohttp.ClientError as err:
@@ -91,9 +91,9 @@ def _base_schema(defaults: dict) -> vol.Schema:
         ): vol.All(vol.Coerce(int), vol.Range(min=1, max=1440)),
         vol.Optional(CONF_IP_MODE, default=defaults.get(CONF_IP_MODE, IP_MODE_AUTO)):
             selector.selector({"select": {"options": [
-                {"value": IP_MODE_AUTO,   "label": "Auto \u2014 IP WAN d\u00e9tect\u00e9e par Infomaniak (recommand\u00e9)"},
-                {"value": IP_MODE_STATIC, "label": "IP fixe \u2014 saisie manuelle"},
-                {"value": IP_MODE_ENTITY, "label": "Entit\u00e9 HA \u2014 lire l'IP depuis un capteur"},
+                {"value": IP_MODE_AUTO,   "label": "Auto - IP WAN détectée par Infomaniak (recommandé)"},
+                {"value": IP_MODE_STATIC, "label": "IP fixe - saisie manuelle"},
+                {"value": IP_MODE_ENTITY, "label": "Entité HA - lire l'IP depuis un capteur"},
             ]}}),
     })
 
