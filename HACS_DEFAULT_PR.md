@@ -4,10 +4,10 @@ Ce fichier décrit les étapes pour inclure l'intégration dans le store HACS of
 
 ## Prérequis (à vérifier avant la PR)
 
-- [ ] L'action **HACS Action** passe sans erreur (onglet Actions du repo GitHub)
-- [ ] L'action **Hassfest** passe sans erreur
-- [ ] Une **release GitHub** existe (ex: v1.1.0)
-- [ ] Le repo a une **description** et des **topics** GitHub :
+- [x] L'action **HACS Action** passe sans erreur (onglet Actions du repo GitHub)
+- [x] L'action **Hassfest** passe sans erreur
+- [x] Une **release GitHub** existe (ex: v1.1.0)
+- [x] Le repo a une **description** et des **topics** GitHub :
       `home-assistant`, `hacs`, `ddns`, `infomaniak`, `homeassistant`
 
 ## Étapes
@@ -27,6 +27,4 @@ Ce fichier décrit les étapes pour inclure l'intégration dans le store HACS of
 
 ## Notes importantes
 
-- Seul le propriétaire du repo (toi, @cy-bertrand) peut soumettre cette PR
-- Si le repo ne remplit pas tous les critères, la PR sera fermée sans commentaire
 - Le processus de review peut prendre plusieurs semaines

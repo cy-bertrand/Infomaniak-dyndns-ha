@@ -88,7 +88,7 @@ class InfomaniakDDNSStatusSensor(InfomaniakDDNSBaseSensor):
             "ip_mode": ip_mode,
             "update_count": self._coordinator.update_count,
             "update_url": self._entry.data.get("update_url", "https://infomaniak.com/nic/update"),
-            "update_interval_minutes": self._entry.data.get("update_interval", 5),
+            "update_interval_minutes": self._entry.data.get("update_interval", 15),
         }
 
 

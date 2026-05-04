@@ -12,7 +12,7 @@ CONF_IP_STATIC = "ip_static"
 CONF_IP_ENTITY = "ip_entity"
 
 DEFAULT_UPDATE_URL = "https://infomaniak.com/nic/update"
-DEFAULT_UPDATE_INTERVAL = 5  # minutes
+DEFAULT_UPDATE_INTERVAL = 15  # minutes
 
 IP_MODE_AUTO = "auto"        # IP WAN détectée par Infomaniak (défaut)
 IP_MODE_STATIC = "static"    # IP fixe saisie manuellement

@@ -1,16 +1,19 @@
 # Infomaniak DynDNS — Home Assistant Integration
 
+![Description de l'image](custom_components/infomaniak_ddns/brand/dark_logo.png)
+
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
 [![HACS Action](https://github.com/cy-bertrand/Infomaniak-dyndns-ha/actions/workflows/hacs.yml/badge.svg)](https://github.com/cy-bertrand/Infomaniak-dyndns-ha/actions/workflows/hacs.yml)
 [![Hassfest](https://github.com/cy-bertrand/Infomaniak-dyndns-ha/actions/workflows/hassfest.yml/badge.svg)](https://github.com/cy-bertrand/Infomaniak-dyndns-ha/actions/workflows/hassfest.yml)
 
-Mise à jour automatique de votre enregistrement DNS dynamique (DDNS/DynDNS) Infomaniak depuis Home Assistant. Supporte la détection automatique de l'IP WAN, une IP fixe, ou la lecture depuis une entité HA.
+Mise à jour automatique de votre enregistrement DNS dynamique (DDNS/DynDNS) Infomaniak depuis Home Assistant.  
+Supporte la détection automatique de l'IP WAN, une IP fixe, ou la lecture depuis une entité HA.
 
----
 
-## Installation via HACS
 
-### Dépôt custom (immédiat)
+## Installation
+
+###  via HACS - Dépôt custom (méthode conseillée)
 
 1. Dans HA : **HACS** → **Intégrations** → bouton **⋮** → **Dépôts personnalisés**
 2. URL : `https://github.com/cy-bertrand/Infomaniak-dyndns-ha`
@@ -35,7 +38,7 @@ Copiez le dossier `custom_components/infomaniak_ddns/` dans `<config>/custom_com
 | **Nom d'hôte** | FQDN DDNS (ex: `home.mondomaine.com`) | — |
 | **Nom d'utilisateur** | Login DDNS dédié (**pas** le login admin) | — |
 | **Mot de passe** | Mot de passe DDNS dédié (**pas** le mot de passe admin) | — |
-| **Intervalle** | Fréquence de mise à jour en minutes | `5` |
+| **Intervalle** | Fréquence de mise à jour en minutes | `15` |
 | **Source IP** | Voir tableau ci-dessous | Auto |
 
 ### Modes de source IP
@@ -54,8 +57,8 @@ Copiez le dossier `custom_components/infomaniak_ddns/` dans `<config>/custom_com
 
 | Entité | États | Description |
 |---|---|---|
-| `sensor.ddns_<hostname>_status` | `updated` / `unchanged` / `error` / `unknown` | Résultat de la dernière mise à jour |
-| `sensor.ddns_<hostname>_ip` | IPv4 | Dernière IP enregistrée |
+| `sensor.infomaniak_ddns_<hostname>_status` | `updated` / `unchanged` / `error` / `unknown` | Résultat de la dernière mise à jour |
+| `sensor.infomaniak_ddns_<hostname>_ip` | IPv4 | Dernière IP enregistrée |
 
 ### Attributs de `_status`
 - `hostname`, `last_response`, `last_error`, `ip_source`, `ip_mode`, `update_count`, `update_interval_minutes`
@@ -94,13 +97,13 @@ automation:
   - alias: "Alerte DDNS en erreur"
     trigger:
       - platform: state
-        entity_id: sensor.ddns_home_mondomaine_com_status
+        entity_id: sensor.infomaniak_ddns_home_mondomaine_com_status
         to: "error"
     action:
       - service: notify.mobile_app
         data:
           title: "⚠️ DDNS Infomaniak"
           message: >
-            Erreur : {{ state_attr('sensor.ddns_home_mondomaine_com_status', 'last_error') }}
+            Erreur : {{ state_attr('sensor.infomaniak_ddns_home_mondomaine_com_status', 'last_error') }}
 ```
 

@@ -232,12 +232,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 # ---------------------------------------------------------------------------
 # Options Flow — reconfiguration
-#
-# Compatible HA 2025.12+ :
-#   - Pas de __init__, pas de self.config_entry = config_entry
-#   - self.config_entry est fourni automatiquement par la classe parente
-#   - self._data remplacé par self.config_entry.data
-#   - self._pending transfère les données entre étapes
 # ---------------------------------------------------------------------------
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
