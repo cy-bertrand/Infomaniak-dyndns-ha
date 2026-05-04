@@ -1,12 +1,12 @@
 {
   "domain": "infomaniak_ddns",
   "name": "Infomaniak DynDNS",
-  "version": "1.1.0",
-  "documentation": "https://github.com/cy-bertrand/Infomaniak-dyndns-ha",
-  "issue_tracker": "https://github.com/cy-bertrand/Infomaniak-dyndns-ha/issues",
   "codeowners": ["@cy-bertrand"],
   "config_flow": true,
-  "iot_class": "cloud_push",
+  "documentation": "https://github.com/cy-bertrand/Infomaniak-dyndns-ha",
   "integration_type": "hub",
-  "requirements": []
+  "iot_class": "cloud_push",
+  "issue_tracker": "https://github.com/cy-bertrand/Infomaniak-dyndns-ha/issues",
+  "requirements": [],
+  "version": "1.1.0"
 }
