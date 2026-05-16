@@ -6,6 +6,8 @@
 [![HACS Action](https://github.com/cy-bertrand/Infomaniak-dyndns-ha/actions/workflows/hacs.yml/badge.svg)](https://github.com/cy-bertrand/Infomaniak-dyndns-ha/actions/workflows/hacs.yml)
 [![Hassfest](https://github.com/cy-bertrand/Infomaniak-dyndns-ha/actions/workflows/hassfest.yml/badge.svg)](https://github.com/cy-bertrand/Infomaniak-dyndns-ha/actions/workflows/hassfest.yml)
 
+<a href="https://www.buymeacoffee.com/cybertrand" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Brain" height="41" width="174"></a>
+
 > Français | [English](#english)
 
 Mise à jour automatique de votre enregistrement DNS dynamique (DDNS/DynDNS) Infomaniak depuis Home Assistant.  
@@ -111,6 +113,7 @@ automation:
 ---
 
 ### English
+<a href="https://www.buymeacoffee.com/cybertrand" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Brain" height="41" width="174"></a>
 
 > [Français](#) | English
 
