@@ -13,6 +13,8 @@
 Mise à jour automatique de votre enregistrement DNS dynamique (DDNS/DynDNS) Infomaniak depuis Home Assistant.  
 Supporte la détection automatique de l'IP WAN, une IP fixe, ou la lecture depuis une entité HA.
 
+Afin d'éviter le spamming du service DDNS inutile et de permettre une mise à jour rapide d'un changement de l'IP, activation, en option, d'une vérification périodique via des services d'URL publiques de détection de l'IP WAN avec mise à jour du DDNS en cas de détection de changement.
+
 ## Installation
 
 ###  via HACS - Dépôt custom (méthode conseillée)
@@ -42,6 +44,9 @@ Copiez le dossier `custom_components/infomaniak_ddns/` dans `<config>/custom_com
 | **Mot de passe** | Mot de passe DDNS dédié (**pas** le mot de passe admin) | — |
 | **Intervalle** | Fréquence de mise à jour en minutes | `15` |
 | **Source IP** | Voir tableau ci-dessous | Auto |
+| **Fast detect option** | Service de détection rapide de changement d'IP WAN | — |
+| **Fast detect URL(s)** | - URL(s) de services publique de détection d'IP WAN | — |
+| **Fast detect intervalle** | Fréquence d'appel aux URL(s) publiques de détection de IP WAN, en secondes, avec rotation entre les URL sélectionnées | `15` |
 
 ### Modes de source IP
 
@@ -53,6 +58,13 @@ Copiez le dossier `custom_components/infomaniak_ddns/` dans `<config>/custom_com
 
 > ⚠️ En cas d'entité indisponible ou d'IP invalide, l'intégration bascule automatiquement en mode auto.
 
+### Fast detection option
+
+8 services prédéfinis (ifconfig.me, icanhazip.com, ipify.org, ident.me, ipecho.net, AWS checkip, ipinfo.io, seeip.org), cochables individuellement dans l'écran d'options.
+L'utilisateur peut aussi ajouter ses propres URLs (une par ligne).
+Le pool est parcouru en round-robin entre les services sélectionnées avec repli automatique sur le service suivant en cas d'échec/timeout (5s) pour éviter de spammer un seul fournisseur.
+L'intervalle d'appel peut être définit entre 15 et 3600 secondes.
+
 ---
 
 ## Entités créées
@@ -62,8 +74,9 @@ Copiez le dossier `custom_components/infomaniak_ddns/` dans `<config>/custom_com
 | `sensor.infomaniak_ddns_<hostname>_status` | `updated` / `unchanged` / `error` / `unknown` | Résultat de la dernière mise à jour |
 | `sensor.infomaniak_ddns_<hostname>_ip` | IPv4 | Dernière IP enregistrée |
 
-### Attributs de `_status`
-- `hostname`, `last_response`, `last_error`, `ip_source`, `ip_mode`, `update_count`, `update_interval_minutes`
+### Attributs
+- Attributs de `_status`: `hostname`, `last_response`, `last_error`, `ip_source`, `ip_mode`, `update_count`, `update_interval_minutes`, `fast_detection_enabled`, `fast_detection_interval_seconds`, `ip_services_pool_size`
+- Attributs de `_ip`: `last_known_wan_ip_fast_check`.
 
 ---
 
@@ -155,6 +168,9 @@ Copy the `custom_components/infomaniak_ddns/` folder into `<config>/custom_compo
 | **Password** | Dedicated DDNS password (**not** the admin password) | — |
 | **Interval** | Update frequency in minutes | `15` |
 | **IP Source** | See table below | Auto |
+| **Fast detect option** | Fast dection of WAN IP Change | — |
+| **Fast detect URL(s)** | URL(s) of publics services to detect the WAN IP | — |
+| **Fast detect interval** | Interval of call to the public services URL(s) for IP WAN detection, in secondes | `15` |
 
 ### IP Source Modes
 
@@ -166,6 +182,13 @@ Copy the `custom_components/infomaniak_ddns/` folder into `<config>/custom_compo
 
 > ⚠️ If the entity is unavailable or the IP is invalid, the integration automatically falls back to auto mode.
 
+### Fast detection option
+
+8 Pre-determined public services (ifconfig.me, icanhazip.com, ipify.org, ident.me, ipecho.net, AWS checkip, ipinfo.io, seeip.org), independantly selectables.
+The user can also add its own URLs (one per line).
+The pool is rotated in round-robin between the selected services with automatic transfer to next service in case of timeou (5s) this to avoid to spam one specific server.
+The check interval can be defined between 15 and 3600 seconds.
+
 ---
 
 ## Created Entities
@@ -175,8 +198,9 @@ Copy the `custom_components/infomaniak_ddns/` folder into `<config>/custom_compo
 | `sensor.infomaniak_ddns_<hostname>_status` | `updated` / `unchanged` / `error` / `unknown` | Result of the last update |
 | `sensor.infomaniak_ddns_<hostname>_ip` | IPv4 | Last registered IP address |
 
-### Attributes of `_status`
-- `hostname`, `last_response`, `last_error`, `ip_source`, `ip_mode`, `update_count`, `update_interval_minutes`
+### Attributs
+- `_status`: `hostname`, `last_response`, `last_error`, `ip_source`, `ip_mode`, `update_count`, `update_interval_minutes`, `fast_detection_enabled`, `fast_detection_interval_seconds`, `ip_services_pool_size`
+- `_ip`: `last_known_wan_ip_fast_check`.
 
 ---
 
