@@ -14,7 +14,7 @@ from homeassistant import config_entries
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers import selector
+from homeassistant.helpers import selector, config_validation as cv
 
 from .const import (
     DOMAIN,
@@ -31,6 +31,14 @@ from .const import (
     IP_MODE_AUTO,
     IP_MODE_STATIC,
     IP_MODE_ENTITY,
+    CONF_FAST_DETECTION,
+    CONF_FAST_INTERVAL,
+    DEFAULT_FAST_INTERVAL,
+    MIN_FAST_INTERVAL,
+    MAX_FAST_INTERVAL,
+    CONF_IP_SERVICES,
+    CONF_CUSTOM_SERVICES,
+    IP_SERVICES_DEFAULT,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -64,14 +72,14 @@ async def _test_connection(hass: HomeAssistant, data: dict[str, Any]) -> dict[st
         async with async_timeout.timeout(15):
             resp = await session.post(url, auth=aiohttp.BasicAuth(username, password))
             text = (await resp.text()).strip()
-            _LOGGER.debug("Config flow validation response: %s", text)
-            if text.startswith("badauth"):
-                raise InvalidAuth
-            if text.startswith("nohost") or text.startswith("notfqdn"):
-                raise InvalidHostname
-            if text.startswith("911"):
-                raise CannotConnect
-            return {"title": f"Infomaniak DDNS - {hostname}"}
+        _LOGGER.debug("Config flow validation response: %s", text)
+        if text.startswith("badauth"):
+            raise InvalidAuth
+        if text.startswith("nohost") or text.startswith("notfqdn"):
+            raise InvalidHostname
+        if text.startswith("911"):
+            raise CannotConnect
+        return {"title": f"Infomaniak DDNS - {hostname}"}
     except asyncio.TimeoutError as err:
         raise CannotConnect from err
     except aiohttp.ClientError as err:
@@ -91,7 +99,7 @@ def _base_schema(defaults: dict) -> vol.Schema:
         ): vol.All(vol.Coerce(int), vol.Range(min=1, max=1440)),
         vol.Optional(CONF_IP_MODE, default=defaults.get(CONF_IP_MODE, IP_MODE_AUTO)):
             selector.selector({"select": {"options": [
-                {"value": IP_MODE_AUTO,   "label": "Auto - IP WAN détectée par Infomaniak (recommandé)"},
+                {"value": IP_MODE_AUTO, "label": "Auto - IP WAN détectée par Infomaniak (recommandé)"},
                 {"value": IP_MODE_STATIC, "label": "IP fixe - saisie manuelle"},
                 {"value": IP_MODE_ENTITY, "label": "Entité HA - lire l'IP depuis un capteur"},
             ]}}),
@@ -107,6 +115,37 @@ def _static_ip_schema(defaults: dict) -> vol.Schema:
 def _entity_schema(defaults: dict) -> vol.Schema:
     return vol.Schema({
         vol.Required(CONF_IP_ENTITY, default=defaults.get(CONF_IP_ENTITY, "")): str,
+    })
+
+
+def _fast_detection_schema(options: dict) -> vol.Schema:
+    """NOUVEAU : schema pour la détection rapide + rotation de services IP."""
+    service_choices = {
+        key: value["name"] for key, value in IP_SERVICES_DEFAULT.items()
+    }
+    default_selected_services = options.get(
+        CONF_IP_SERVICES,
+        [key for key, value in IP_SERVICES_DEFAULT.items() if value["enabled_default"]],
+    )
+    custom_services_text = "\n".join(options.get(CONF_CUSTOM_SERVICES, []))
+
+    return vol.Schema({
+        vol.Optional(
+            CONF_FAST_DETECTION,
+            default=options.get(CONF_FAST_DETECTION, False),
+        ): bool,
+        vol.Optional(
+            CONF_FAST_INTERVAL,
+            default=options.get(CONF_FAST_INTERVAL, DEFAULT_FAST_INTERVAL),
+        ): vol.All(vol.Coerce(int), vol.Range(min=MIN_FAST_INTERVAL, max=MAX_FAST_INTERVAL)),
+        vol.Optional(
+            CONF_IP_SERVICES,
+            default=default_selected_services,
+        ): cv.multi_select(service_choices),
+        vol.Optional(
+            "custom_services_raw",
+            default=custom_services_text,
+        ): str,
     })
 
 
@@ -269,7 +308,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 self.hass.config_entries.async_update_entry(
                     self.config_entry, data=merged
                 )
-                return self.async_create_entry(title="", data={})
+                # NOUVEAU : on continue vers l'étape détection rapide / services IP
+                return await self.async_step_fast_detection()
 
         return self.async_show_form(
             step_id="init",
@@ -303,7 +343,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     self.hass.config_entries.async_update_entry(
                         self.config_entry, data=merged
                     )
-                    return self.async_create_entry(title="", data={})
+                    return await self.async_step_fast_detection()
 
         defaults = {**self.config_entry.data, **pending}
         return self.async_show_form(
@@ -339,13 +379,37 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     self.hass.config_entries.async_update_entry(
                         self.config_entry, data=merged
                     )
-                    return self.async_create_entry(title="", data={})
+                    return await self.async_step_fast_detection()
 
         defaults = {**self.config_entry.data, **pending}
         return self.async_show_form(
             step_id="entity_ip",
             data_schema=_entity_schema(defaults),
             errors=errors,
+        )
+
+    async def async_step_fast_detection(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """NOUVEAU : étape dédiée à la détection rapide de changement d'IP WAN
+        et à la sélection/rotation des services publics de détection d'IP."""
+        if user_input is not None:
+            custom_raw = user_input.pop("custom_services_raw", "")
+            custom_urls = [u.strip() for u in custom_raw.splitlines() if u.strip()]
+            valid_custom_urls = [
+                u for u in custom_urls if u.startswith("http://") or u.startswith("https://")
+            ]
+            if len(valid_custom_urls) != len(custom_urls):
+                _LOGGER.warning(
+                    "Certaines URLs personnalisées ont été ignorées (format invalide)"
+                )
+            user_input[CONF_CUSTOM_SERVICES] = valid_custom_urls
+
+            return self.async_create_entry(title="", data=user_input)
+
+        return self.async_show_form(
+            step_id="fast_detection",
+            data_schema=_fast_detection_schema(self.config_entry.options),
         )
 
 

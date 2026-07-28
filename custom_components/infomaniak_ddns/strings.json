@@ -64,6 +64,16 @@
         "data": {
           "ip_entity": "entity_id du capteur IP"
         }
+      },
+      "fast_detection": {
+        "title": "Détection rapide de changement d'IP WAN",
+        "description": "Active une vérification périodique rapide de l'IP WAN (indépendante du cycle de mise à jour normal) et force une mise à jour DDNS immédiate en cas de changement. Sélectionnez les services publics à utiliser en rotation pour éviter de solliciter toujours le même service.",
+        "data": {
+          "fast_detection": "Activer la détection rapide",
+          "fast_interval": "Intervalle de vérification (secondes)",
+          "ip_services": "Services publics de détection d'IP à utiliser",
+          "custom_services_raw": "Services personnalisés (une URL par ligne)"
+        }
       }
     },
     "error": {
