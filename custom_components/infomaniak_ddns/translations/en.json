@@ -64,6 +64,16 @@
         "data": {
           "ip_entity": "IP sensor entity_id"
         }
+      },
+      "fast_detection": {
+        "title": "Fast detection of WAN IP change",
+        "description": "Activate a fast periodic cehck of the WAN IP through public call services (independantly of the noraml update cycle of the infomaniak service) and force the infomaniak DDNS update in case of change detection. Please select the services you want to use in rotation (top avoid spamming of the service)",
+        "data": {
+          "fast_detection": "Activation of the fast detection service",
+          "fast_interval": "WAN IP check interval (in seconds)",
+          "ip_services": "Public service of WAP IP detection to use",
+          "custom_services_raw": "custom service (one URL per line)"
+        }
       }
     },
     "error": {

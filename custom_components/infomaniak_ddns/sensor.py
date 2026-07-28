@@ -7,7 +7,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, CONF_HOSTNAME, CONF_IP_MODE, IP_MODE_AUTO
+from .const import DOMAIN, CONF_HOSTNAME, CONF_IP_MODE, IP_MODE_AUTO, CONF_FAST_DETECTION
 from . import InfomaniakDDNSCoordinator
 
 
@@ -89,6 +89,10 @@ class InfomaniakDDNSStatusSensor(InfomaniakDDNSBaseSensor):
             "update_count": self._coordinator.update_count,
             "update_url": self._entry.data.get("update_url", "https://infomaniak.com/nic/update"),
             "update_interval_minutes": self._entry.data.get("update_interval", 15),
+            # NOUVEAU : infos sur la détection rapide de changement d'IP WAN
+            "fast_detection_enabled": self._entry.options.get(CONF_FAST_DETECTION, False),
+            "fast_detection_interval_seconds": self._entry.options.get("fast_interval", 60),
+            "ip_services_pool_size": getattr(self._coordinator, "_pool_size", None),
         }
 
 
@@ -114,4 +118,8 @@ class InfomaniakDDNSIPSensor(InfomaniakDDNSBaseSensor):
         return {
             "ip_source": self._coordinator.last_ip_source,
             "ip_mode": self._entry.data.get(CONF_IP_MODE, IP_MODE_AUTO),
+            # NOUVEAU : dernière IP WAN vue par le cycle de détection rapide
+            "last_known_wan_ip_fast_check": getattr(
+                self._coordinator, "_last_known_wan_ip", None
+            ),
         }
