@@ -86,13 +86,20 @@ async def _test_connection(hass: HomeAssistant, data: dict[str, Any]) -> dict[st
         raise CannotConnect from err
 
 
-def _base_schema(defaults: dict) -> vol.Schema:
+def _base_schema(defaults: dict, *, require_password: bool = True) -> vol.Schema:
     """Schema step 1 : connexion + mode IP."""
+    password_field = (
+        vol.Required(CONF_PASSWORD)
+        if require_password
+        else vol.Optional(CONF_PASSWORD, default="")
+    )
     return vol.Schema({
         vol.Optional(CONF_UPDATE_URL, default=defaults.get(CONF_UPDATE_URL, DEFAULT_UPDATE_URL)): str,
         vol.Required(CONF_HOSTNAME, default=defaults.get(CONF_HOSTNAME, "")): str,
         vol.Required(CONF_USERNAME, default=defaults.get(CONF_USERNAME, "")): str,
-        vol.Required(CONF_PASSWORD, default=defaults.get(CONF_PASSWORD, "")): str,
+        password_field: selector.TextSelector(
+            selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
+        ),
         vol.Optional(
             CONF_UPDATE_INTERVAL,
             default=defaults.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL),
@@ -119,7 +126,7 @@ def _entity_schema(defaults: dict) -> vol.Schema:
 
 
 def _fast_detection_schema(options: dict) -> vol.Schema:
-    """NOUVEAU : schema pour la détection rapide + rotation de services IP."""
+    """schema pour la détection rapide + rotation de services WAN IP."""
     service_choices = {
         key: value["name"] for key, value in IP_SERVICES_DEFAULT.items()
     }
@@ -274,18 +281,18 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 # ---------------------------------------------------------------------------
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
-    """Options flow handler compatible HA 2025.12+."""
 
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        errors: dict[str, str] = {}
+    async def async_step_init(self, user_input=None) -> FlowResult:
+    errors: dict[str, str] = {}
 
         if user_input is not None:
+            if not user_input.get(CONF_PASSWORD):
+                user_input[CONF_PASSWORD] = self.config_entry.data.get(CONF_PASSWORD, "")
+
             ip_mode = user_input.get(CONF_IP_MODE, IP_MODE_AUTO)
 
             if ip_mode == IP_MODE_STATIC:
-                self._pending: dict[str, Any] = user_input
+                self._pending = user_input
                 return await self.async_step_static_ip()
 
             if ip_mode == IP_MODE_ENTITY:
@@ -308,12 +315,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 self.hass.config_entries.async_update_entry(
                     self.config_entry, data=merged
                 )
-                # NOUVEAU : on continue vers l'étape détection rapide / services IP
+                # continue vers l'étape détection rapide / services IP
                 return await self.async_step_fast_detection()
 
         return self.async_show_form(
             step_id="init",
-            data_schema=_base_schema(self.config_entry.data),
+            data_schema=_base_schema(self.config_entry.data, require_password=False),
             errors=errors,
         )
 
@@ -391,8 +398,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_fast_detection(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """NOUVEAU : étape dédiée à la détection rapide de changement d'IP WAN
-        et à la sélection/rotation des services publics de détection d'IP."""
+        """détection rapide de changement d'IP WAN
+        et sélection/rotation des services publics de détection d'IP"""
         if user_input is not None:
             custom_raw = user_input.pop("custom_services_raw", "")
             custom_urls = [u.strip() for u in custom_raw.splitlines() if u.strip()]
