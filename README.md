@@ -2,7 +2,7 @@
 
 ![Logo](custom_components/infomaniak_ddns/brand/dark_logo.png)
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
+[![HACS Default](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/hacs/integration)
 [![HACS Action](https://github.com/cy-bertrand/Infomaniak-dyndns-ha/actions/workflows/hacs.yml/badge.svg)](https://github.com/cy-bertrand/Infomaniak-dyndns-ha/actions/workflows/hacs.yml)
 [![Hassfest](https://github.com/cy-bertrand/Infomaniak-dyndns-ha/actions/workflows/hassfest.yml/badge.svg)](https://github.com/cy-bertrand/Infomaniak-dyndns-ha/actions/workflows/hassfest.yml)
 
@@ -17,12 +17,21 @@ Afin d'éviter le spamming du service DDNS inutile et de permettre une mise à j
 
 ## Installation
 
-###  via HACS - Dépôt custom (méthode conseillée)
+###  via HACS (méthode conseillée)
+
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=cy-bertrand&repository=Infomaniak-dyndns-ha&category=integration)
+
+Dans HACS, chercher "Infomaniak DynDNS"
+→ Installez
+→ Redémarrez HA
+→ Paramètres > Appareil > Ajouter une intégration > Informaniak DynDNS
+
+###  via HACS - Dépôt custom
 
 1. Dans HA : **HACS** → **Intégrations** → bouton **⋮** → **Dépôts personnalisés**
 2. URL : `https://github.com/cy-bertrand/Infomaniak-dyndns-ha`
 3. Catégorie : **Intégration** → **AJOUTER**
-4. Installez **Infomaniak DynDNS** → Redémarrez HA
+4. Installez **Infomaniak DynDNS** → Redémarrez HA → Paramètres > Appareil > Ajouter une intégration > Informaniak DynDNS
 
 ### Manuelle
 
@@ -141,7 +150,16 @@ Supports automatic WAN IP detection, a static IP address, or reading the IP from
 
 ## Installation
 
-### Via HACS — Custom Repository (recommended)
+###  via HACS (recommended)
+
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=cy-bertrand&repository=Infomaniak-dyndns-ha&category=integration)
+
+In the **HACS** search for "Infomaniak DynDNS"
+→ Install
+→ Restart HA
+→ Settings > Devices > Add Integration > Informaniak DynDNS
+
+### Via HACS — Custom Repository
 
 1. In HA: **HACS** → **Integrations** → **⋮** button → **Custom repositories**
 2. URL: `https://github.com/cy-bertrand/Infomaniak-dyndns-ha`
