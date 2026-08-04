@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Configure Infomaniak DDNS",
-        "description": "Enter connection settings and choose the IP source.",
+        "description": "Enter the connection settings and choose the IP source.",
         "data": {
           "update_url": "DDNS update URL",
           "hostname": "DDNS hostname (e.g. home.mydomain.com)",
@@ -22,19 +22,19 @@
       },
       "entity_ip": {
         "title": "Home Assistant entity",
-        "description": "Enter the entity_id of a sensor whose state is an IPv4 address (e.g. sensor.wan_ip). The IP will be read on each update.",
+        "description": "Enter the entity_id of a sensor whose state is an IPv4 address (e.g. sensor.ip_wan). The IP will be read on each update.",
         "data": {
           "ip_entity": "IP sensor entity_id"
         }
       }
     },
     "error": {
-      "cannot_connect": "Cannot connect to DDNS server. Check the URL.",
-      "invalid_auth": "Invalid credentials. Check DDNS username and password.",
+      "cannot_connect": "Unable to reach the DDNS server. Check the URL.",
+      "invalid_auth": "Invalid credentials. Check the DDNS login and password.",
       "invalid_hostname": "Invalid or unknown hostname on Infomaniak.",
       "invalid_ip": "Invalid IPv4 address. Expected format: 1.2.3.4",
       "invalid_entity": "Invalid or empty entity_id.",
-      "unknown": "Unexpected error. Check HA logs."
+      "unknown": "Unexpected error. Check the HA logs."
     },
     "abort": {
       "already_configured": "This DDNS entry is already configured."
@@ -43,7 +43,7 @@
   "options": {
     "step": {
       "init": {
-        "title": "Infomaniak DDNS Options",
+        "title": "Infomaniak DDNS options",
         "data": {
           "update_url": "DDNS update URL",
           "hostname": "DDNS hostname",
@@ -66,23 +66,57 @@
         }
       },
       "fast_detection": {
-        "title": "Fast detection of WAN IP change",
-        "description": "Activate a fast periodic cehck of the WAN IP through public call services (independantly of the noraml update cycle of the infomaniak service) and force the infomaniak DDNS update in case of change detection. Please select the services you want to use in rotation (top avoid spamming of the service)",
+        "title": "Fast WAN IP change detection",
+        "description": "Enable a periodic quick check of the WAN IP (independent of the normal update cycle) and force an immediate DDNS update when a change is detected. Select the public services to use in rotation to avoid always hitting the same service.",
         "data": {
-          "fast_detection": "Activation of the fast detection service",
-          "fast_interval": "WAN IP check interval (in seconds)",
-          "ip_services": "Public service of WAP IP detection to use",
-          "custom_services_raw": "custom service (one URL per line)"
+          "fast_detection": "Enable fast detection",
+          "fast_interval": "Check interval (seconds)",
+          "ip_services": "Public IP detection services to use",
+          "custom_services_raw": "Custom services (one URL per line)"
         }
       }
     },
     "error": {
-      "cannot_connect": "Cannot connect.",
+      "cannot_connect": "Unable to reach the DDNS server.",
       "invalid_auth": "Invalid credentials.",
       "invalid_hostname": "Invalid hostname.",
       "invalid_ip": "Invalid IPv4 address.",
       "invalid_entity": "Invalid entity_id.",
       "unknown": "Unexpected error."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "infomaniak_ddns_status": {
+        "name": "Status",
+        "state": {
+          "updated": "Updated",
+          "unchanged": "Unchanged",
+          "error": "Error",
+          "unknown": "Unknown"
+        },
+        "state_attributes": {
+          "hostname": { "name": "Hostname" },
+          "last_response": { "name": "Last response" },
+          "last_error": { "name": "Last error" },
+          "ip_source": { "name": "IP source" },
+          "ip_mode": { "name": "IP mode" },
+          "update_count": { "name": "Update count" },
+          "update_url": { "name": "Update URL" },
+          "update_interval_minutes": { "name": "Update interval (minutes)" },
+          "fast_detection_enabled": { "name": "Fast detection enabled" },
+          "fast_detection_interval_seconds": { "name": "Fast detection interval (seconds)" },
+          "ip_services_pool_size": { "name": "IP services pool size" }
+        }
+      },
+      "infomaniak_ddns_ip": {
+        "name": "IP address",
+        "state_attributes": {
+          "ip_source": { "name": "IP source" },
+          "ip_mode": { "name": "IP mode" },
+          "last_known_wan_ip_fast_check": { "name": "Last WAN IP seen by fast check" }
+        }
+      }
     }
   }
 }

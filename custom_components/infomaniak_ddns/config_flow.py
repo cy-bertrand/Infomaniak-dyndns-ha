@@ -1,7 +1,6 @@
 """Config flow for Infomaniak DDNS integration."""
 from __future__ import annotations
 
-import asyncio
 import logging
 import re
 from typing import Any
@@ -73,11 +72,13 @@ async def _test_connection(hass: HomeAssistant, data: dict[str, Any]) -> dict[st
             resp = await session.post(url, auth=aiohttp.BasicAuth(username, password))
             text = (await resp.text()).strip()
         _LOGGER.debug("Config flow validation response: %s", text)
+        if resp.status != 200:
+            raise CannotConnect
         if text.startswith("badauth"):
             raise InvalidAuth
         if text.startswith("nohost") or text.startswith("notfqdn"):
             raise InvalidHostname
-        if text.startswith("911"):
+        if text.startswith("911") or text.startswith("abuse"):
             raise CannotConnect
         return {"title": f"Infomaniak DDNS - {hostname}"}
     except asyncio.TimeoutError as err:

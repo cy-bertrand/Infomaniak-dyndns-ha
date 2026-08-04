@@ -24,6 +24,8 @@ async def async_setup_entry(
 
 
 class InfomaniakDDNSBaseSensor(SensorEntity):
+    _attr_has_entity_name = True
+
     def __init__(self, coordinator: InfomaniakDDNSCoordinator, entry: ConfigEntry) -> None:
         self._coordinator = coordinator
         self._entry = entry
@@ -50,13 +52,11 @@ class InfomaniakDDNSBaseSensor(SensorEntity):
 
 
 class InfomaniakDDNSStatusSensor(InfomaniakDDNSBaseSensor):
+    translation_key = "infomaniak_ddns_status"
+
     @property
     def unique_id(self) -> str:
         return f"{self._entry.entry_id}_status"
-
-    @property
-    def name(self) -> str:
-        return f"DDNS {self._hostname} Status"
 
     @property
     def icon(self) -> str:
@@ -97,13 +97,11 @@ class InfomaniakDDNSStatusSensor(InfomaniakDDNSBaseSensor):
 
 
 class InfomaniakDDNSIPSensor(InfomaniakDDNSBaseSensor):
+    translation_key = "infomaniak_ddns_ip"
+
     @property
     def unique_id(self) -> str:
         return f"{self._entry.entry_id}_ip"
-
-    @property
-    def name(self) -> str:
-        return f"DDNS {self._hostname} IP"
 
     @property
     def icon(self) -> str:

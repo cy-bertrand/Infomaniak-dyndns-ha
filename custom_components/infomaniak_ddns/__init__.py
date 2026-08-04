@@ -5,6 +5,7 @@ import asyncio
 import itertools
 import logging
 import re
+from collections.abc import Callable
 from datetime import timedelta
 from urllib.parse import urlparse
 
@@ -58,10 +59,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    interval = timedelta(minutes=entry.data.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL))
-    entry.async_on_unload(
-        async_track_time_interval(hass, coordinator.async_refresh, interval)
-    )
+    # Timer de mise à jour périodique (reconstruit si l'intervalle change via Options)
+    coordinator.async_setup_update_interval()
 
     # Détection rapide de changement d'IP WAN (optionnelle, configurée via Options)
     coordinator.async_setup_fast_detection()
@@ -75,6 +74,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Appelé quand l'utilisateur modifie les options (services IP, détection rapide...)."""
     coordinator: InfomaniakDDNSCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator.async_setup_update_interval()
     coordinator.async_rebuild_ip_service_pool()
     coordinator.async_setup_fast_detection()
 
@@ -106,6 +106,8 @@ class InfomaniakDDNSCoordinator:
         self.last_ip_source: str | None = None
         self.update_count: int = 0
         self._listeners: list = []
+        self._update_lock = asyncio.Lock()
+        self._interval_unsub = None
 
         # --- NOUVEAU : détection rapide + rotation de services IP ---
         self._last_known_wan_ip: str | None = None
@@ -114,7 +116,7 @@ class InfomaniakDDNSCoordinator:
         self._pool_size = 0
         self.async_rebuild_ip_service_pool()
 
-    def async_add_listener(self, update_callback) -> callable:
+    def async_add_listener(self, update_callback: Callable[[], None]) -> Callable[[], None]:
         self._listeners.append(update_callback)
 
         def remove_listener():
@@ -124,7 +126,10 @@ class InfomaniakDDNSCoordinator:
 
     def _notify_listeners(self):
         for listener in self._listeners:
-            listener()
+            try:
+                listener()
+            except Exception:  # noqa: BLE001
+                _LOGGER.exception("Erreur dans un listener du coordinateur DDNS")
 
     def _resolve_ip(self) -> tuple[str | None, str]:
         """
@@ -164,7 +169,15 @@ class InfomaniakDDNSCoordinator:
         return None, "auto (IP WAN détectée par Infomaniak)"
 
     async def async_refresh(self, _now=None) -> None:
-        """Perform the DDNS update."""
+        """Perform the DDNS update, sérialisé pour éviter les exécutions concurrentes."""
+        if self._update_lock.locked():
+            _LOGGER.debug("Mise à jour DDNS déjà en cours, exécution ignorée")
+            return
+        async with self._update_lock:
+            await self._async_perform_update(_now)
+
+    async def _async_perform_update(self, _now=None) -> None:
+        """Effectue réellement la mise à jour DDNS."""
         update_url = self.entry.data.get(CONF_UPDATE_URL, DEFAULT_UPDATE_URL)
         hostname = self.entry.data[CONF_HOSTNAME]
         username = self.entry.data[CONF_USERNAME]
@@ -212,9 +225,9 @@ class InfomaniakDDNSCoordinator:
         finally:
             self._notify_listeners()
 
-    # ------------------------------------------------------------------
-    # NOUVEAU : rotation de services de détection d'IP publique
-    # ------------------------------------------------------------------
+    # -------------------------------------------------------------
+    # rotation de services de détection d'IP WAN publique
+    # -------------------------------------------------------------
     def async_rebuild_ip_service_pool(self) -> None:
         """(Re)construit la liste circulaire des services d'IP à interroger,
         à partir des options choisies par l'utilisateur (cases cochées +
@@ -261,7 +274,7 @@ class InfomaniakDDNSCoordinator:
                 ) as resp:
                     text = (await resp.text()).strip()
                     match = IP_REGEX.search(text)
-                    if match:
+                    if match and _is_valid_ipv4(match.group(0)):
                         return match.group(0)
                     _LOGGER.debug("Réponse inattendue de %s: %s", url, text)
             except Exception as err:  # noqa: BLE001
@@ -272,8 +285,25 @@ class InfomaniakDDNSCoordinator:
         return None
 
     # ------------------------------------------------------------------
-    # NOUVEAU : détection rapide de changement d'IP WAN
+    # détection rapide de changement d'IP WAN
     # ------------------------------------------------------------------
+    def async_setup_update_interval(self) -> None:
+        """(Re)crée le timer périodique de mise à jour DDNS selon la config courante."""
+        if self._interval_unsub is not None:
+            self._interval_unsub()
+            self._interval_unsub = None
+
+        interval = timedelta(
+            minutes=self.entry.data.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)
+        )
+        self._interval_unsub = async_track_time_interval(
+            self.hass, self.async_refresh, interval
+        )
+        _LOGGER.debug(
+            "Timer de mise à jour DDNS planifié (intervalle: %s min)",
+            interval.total_seconds() // 60,
+        )
+
     def async_setup_fast_detection(self) -> None:
         """Active ou désactive le timer de détection rapide selon les options."""
         if self._fast_unsub is not None:
@@ -311,7 +341,10 @@ class InfomaniakDDNSCoordinator:
             self._last_known_wan_ip = current_ip
 
     def async_unload(self) -> None:
-        """À appeler lors du déchargement de l'entrée pour stopper le timer rapide."""
+        """À appeler lors du déchargement de l'entrée pour stopper les timers."""
         if self._fast_unsub is not None:
             self._fast_unsub()
             self._fast_unsub = None
+        if self._interval_unsub is not None:
+            self._interval_unsub()
+            self._interval_unsub = None
