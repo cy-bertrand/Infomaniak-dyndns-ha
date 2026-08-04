@@ -106,7 +106,8 @@
           "update_interval_minutes": { "name": "Update-interval (minuten)" },
           "fast_detection_enabled": { "name": "Snelle detectie ingeschakeld" },
           "fast_detection_interval_seconds": { "name": "Interval snelle detectie (seconden)" },
-          "ip_services_pool_size": { "name": "Omvang IP-dienstpool" }
+          "ip_services_pool_size": { "name": "Omvang IP-dienstpool" },
+          "last_ip_service": { "name": "Laatst gebruikte openbare detectiedienst" }
         }
       },
       "infomaniak_ddns_ip": {
@@ -114,7 +115,8 @@
         "state_attributes": {
           "ip_source": { "name": "IP-bron" },
           "ip_mode": { "name": "IP-modus" },
-          "last_known_wan_ip_fast_check": { "name": "Laatste WAN-IP (snelle controle)" }
+          "last_known_wan_ip_fast_check": { "name": "Laatste WAN-IP (snelle controle)" },
+          "last_ip_service": { "name": "Laatst gebruikte openbare detectiedienst" }
         }
       }
     }

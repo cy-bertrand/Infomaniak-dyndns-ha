@@ -106,7 +106,8 @@
           "update_interval_minutes": { "name": "Aktualisierungsintervall (Minuten)" },
           "fast_detection_enabled": { "name": "Schnelle Erkennung aktiviert" },
           "fast_detection_interval_seconds": { "name": "Intervall der schnellen Erkennung (Sekunden)" },
-          "ip_services_pool_size": { "name": "Größe des IP-Dienstpools" }
+          "ip_services_pool_size": { "name": "Größe des IP-Dienstpools" },
+          "last_ip_service": { "name": "Zuletzt verwendeter öffentlicher Erkennungsdienst" }
         }
       },
       "infomaniak_ddns_ip": {
@@ -114,7 +115,8 @@
         "state_attributes": {
           "ip_source": { "name": "IP-Quelle" },
           "ip_mode": { "name": "IP-Modus" },
-          "last_known_wan_ip_fast_check": { "name": "Letzte WAN-IP (schnelle Prüfung)" }
+          "last_known_wan_ip_fast_check": { "name": "Letzte WAN-IP (schnelle Prüfung)" },
+          "last_ip_service": { "name": "Zuletzt verwendeter öffentlicher Erkennungsdienst" }
         }
       }
     }

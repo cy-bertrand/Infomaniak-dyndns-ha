@@ -93,6 +93,7 @@ class InfomaniakDDNSStatusSensor(InfomaniakDDNSBaseSensor):
             "fast_detection_enabled": self._entry.options.get(CONF_FAST_DETECTION, False),
             "fast_detection_interval_seconds": self._entry.options.get("fast_interval", 60),
             "ip_services_pool_size": getattr(self._coordinator, "_pool_size", None),
+            "last_ip_service": self._coordinator.last_ip_service,
         }
 
 
@@ -120,4 +121,5 @@ class InfomaniakDDNSIPSensor(InfomaniakDDNSBaseSensor):
             "last_known_wan_ip_fast_check": getattr(
                 self._coordinator, "_last_known_wan_ip", None
             ),
+            "last_ip_service": self._coordinator.last_ip_service,
         }

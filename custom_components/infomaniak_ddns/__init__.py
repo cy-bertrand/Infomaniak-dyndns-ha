@@ -111,6 +111,7 @@ class InfomaniakDDNSCoordinator:
 
         # --- NOUVEAU : détection rapide + rotation de services IP ---
         self._last_known_wan_ip: str | None = None
+        self.last_ip_service: str | None = None
         self._fast_unsub = None
         self._service_cycle = None
         self._pool_size = 0
@@ -225,9 +226,9 @@ class InfomaniakDDNSCoordinator:
         finally:
             self._notify_listeners()
 
-    # -------------------------------------------------------------
-    # rotation de services de détection d'IP WAN publique
-    # -------------------------------------------------------------
+    # ------------------------------------------------------------------
+    # NOUVEAU : rotation de services de détection d'IP publique
+    # ------------------------------------------------------------------
     def async_rebuild_ip_service_pool(self) -> None:
         """(Re)construit la liste circulaire des services d'IP à interroger,
         à partir des options choisies par l'utilisateur (cases cochées +
@@ -275,17 +276,19 @@ class InfomaniakDDNSCoordinator:
                     text = (await resp.text()).strip()
                     match = IP_REGEX.search(text)
                     if match and _is_valid_ipv4(match.group(0)):
+                        self.last_ip_service = url
                         return match.group(0)
                     _LOGGER.debug("Réponse inattendue de %s: %s", url, text)
             except Exception as err:  # noqa: BLE001
                 _LOGGER.debug("Service IP %s indisponible (%s), essai suivant", url, err)
                 continue
 
+        self.last_ip_service = None
         _LOGGER.warning("Aucun service d'IP n'a répondu lors de ce cycle de détection rapide")
         return None
 
     # ------------------------------------------------------------------
-    # détection rapide de changement d'IP WAN
+    # NOUVEAU : détection rapide de changement d'IP WAN
     # ------------------------------------------------------------------
     def async_setup_update_interval(self) -> None:
         """(Re)crée le timer périodique de mise à jour DDNS selon la config courante."""
@@ -327,6 +330,7 @@ class InfomaniakDDNSCoordinator:
         de changement détecté, sans attendre le cycle lent normal."""
         current_ip = await self._async_get_current_wan_ip_from_services()
         if current_ip is None:
+            self._notify_listeners()
             return
 
         if self._last_known_wan_ip is not None and current_ip != self._last_known_wan_ip:
@@ -339,6 +343,8 @@ class InfomaniakDDNSCoordinator:
             await self.async_refresh()
         else:
             self._last_known_wan_ip = current_ip
+
+        self._notify_listeners()
 
     def async_unload(self) -> None:
         """À appeler lors du déchargement de l'entrée pour stopper les timers."""
