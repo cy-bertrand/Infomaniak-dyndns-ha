@@ -1,0 +1,122 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Infomaniak DDNS konfigurieren",
+        "description": "Verbindungsdaten eingeben und IP-Quelle wählen.",
+        "data": {
+          "update_url": "DDNS-Aktualisierungs-URL",
+          "hostname": "DDNS-Hostname (z. B. home.meinedomain.com)",
+          "username": "DDNS-Benutzername",
+          "password": "DDNS-Passwort",
+          "update_interval": "Aktualisierungsintervall (Minuten)",
+          "ip_mode": "IP-Adressquelle"
+        }
+      },
+      "static_ip": {
+        "title": "Statische IP-Adresse",
+        "description": "Die IPv4-Adresse eingeben, die für {hostname} registriert werden soll.",
+        "data": {
+          "ip_static": "IPv4-Adresse (z. B. 1.2.3.4)"
+        }
+      },
+      "entity_ip": {
+        "title": "Home Assistant Entität",
+        "description": "Die entity_id eines Sensors eingeben, dessen Zustand eine IPv4-Adresse ist (z. B. sensor.ip_wan). Die IP wird bei jeder Aktualisierung gelesen.",
+        "data": {
+          "ip_entity": "IP-Sensor-entity_id"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "DDNS-Server nicht erreichbar. URL überprüfen.",
+      "invalid_auth": "Ungültige Anmeldedaten. DDNS-Benutzername und Passwort überprüfen.",
+      "invalid_hostname": "Ungültiger oder unbekannter Hostname bei Infomaniak.",
+      "invalid_ip": "Ungültige IPv4-Adresse. Erwartetes Format: 1.2.3.4",
+      "invalid_entity": "Ungültige oder leere entity_id.",
+      "unknown": "Unerwarteter Fehler. Prüfe die HA-Protokolle."
+    },
+    "abort": {
+      "already_configured": "Dieser DDNS-Eintrag ist bereits konfiguriert."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Infomaniak DDNS-Optionen",
+        "data": {
+          "update_url": "DDNS-Aktualisierungs-URL",
+          "hostname": "DDNS-Hostname",
+          "username": "DDNS-Benutzername",
+          "password": "DDNS-Passwort",
+          "update_interval": "Aktualisierungsintervall (Minuten)",
+          "ip_mode": "IP-Adressquelle"
+        }
+      },
+      "static_ip": {
+        "title": "Statische IP-Adresse",
+        "data": {
+          "ip_static": "IPv4-Adresse"
+        }
+      },
+      "entity_ip": {
+        "title": "Home Assistant Entität",
+        "data": {
+          "ip_entity": "IP-Sensor-entity_id"
+        }
+      },
+      "fast_detection": {
+        "title": "Schnelle Erkennung von WAN-IP-Änderungen",
+        "description": "Aktiviert eine periodische schnelle Prüfung der WAN-IP (unabhängig vom normalen Aktualisierungszyklus) und erzwingt eine sofortige DDNS-Aktualisierung, wenn eine Änderung erkannt wird. Wähle die öffentlichen Dienste, die abwechselnd verwendet werden sollen, um nicht immer denselben Dienst zu belasten.",
+        "data": {
+          "fast_detection": "Schnelle Erkennung aktivieren",
+          "fast_interval": "Prüfintervall (Sekunden)",
+          "ip_services": "Zu verwendende öffentliche IP-Erkennungsdienste",
+          "custom_services_raw": "Benutzerdefinierte Dienste (eine URL pro Zeile)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "DDNS-Server nicht erreichbar.",
+      "invalid_auth": "Ungültige Anmeldedaten.",
+      "invalid_hostname": "Ungültiger Hostname.",
+      "invalid_ip": "Ungültige IPv4-Adresse.",
+      "invalid_entity": "Ungültige entity_id.",
+      "unknown": "Unerwarteter Fehler."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "infomaniak_ddns_status": {
+        "name": "Status",
+        "state": {
+          "updated": "Aktualisiert",
+          "unchanged": "Unverändert",
+          "error": "Fehler",
+          "unknown": "Unbekannt"
+        },
+        "state_attributes": {
+          "hostname": { "name": "Hostname" },
+          "last_response": { "name": "Letzte Antwort" },
+          "last_error": { "name": "Letzter Fehler" },
+          "ip_source": { "name": "IP-Quelle" },
+          "ip_mode": { "name": "IP-Modus" },
+          "update_count": { "name": "Anzahl der Aktualisierungen" },
+          "update_url": { "name": "Aktualisierungs-URL" },
+          "update_interval_minutes": { "name": "Aktualisierungsintervall (Minuten)" },
+          "fast_detection_enabled": { "name": "Schnelle Erkennung aktiviert" },
+          "fast_detection_interval_seconds": { "name": "Intervall der schnellen Erkennung (Sekunden)" },
+          "ip_services_pool_size": { "name": "Größe des IP-Dienstpools" }
+        }
+      },
+      "infomaniak_ddns_ip": {
+        "name": "IP-Adresse",
+        "state_attributes": {
+          "ip_source": { "name": "IP-Quelle" },
+          "ip_mode": { "name": "IP-Modus" },
+          "last_known_wan_ip_fast_check": { "name": "Letzte WAN-IP (schnelle Prüfung)" }
+        }
+      }
+    }
+  }
+}

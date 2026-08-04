@@ -1,0 +1,122 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Infomaniak DDNS configureren",
+        "description": "Verbindingsgegevens invoeren en IP-bron kiezen.",
+        "data": {
+          "update_url": "DDNS-update-URL",
+          "hostname": "DDNS-hostnaam (bijv. home.mijndomein.com)",
+          "username": "DDNS-gebruikersnaam",
+          "password": "DDNS-wachtwoord",
+          "update_interval": "Update-interval (minuten)",
+          "ip_mode": "IP-adresbron"
+        }
+      },
+      "static_ip": {
+        "title": "Statisch IP-adres",
+        "description": "Voer het IPv4-adres in dat geregistreerd moet worden voor {hostname}.",
+        "data": {
+          "ip_static": "IPv4-adres (bijv. 1.2.3.4)"
+        }
+      },
+      "entity_ip": {
+        "title": "Home Assistant-entiteit",
+        "description": "Voer de entity_id in van een sensor waarvan de status een IPv4-adres is (bijv. sensor.ip_wan). Het IP wordt bij elke update gelezen.",
+        "data": {
+          "ip_entity": "entity_id van IP-sensor"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Kan de DDNS-server niet bereiken. Controleer de URL.",
+      "invalid_auth": "Ongeldige aanmeldgegevens. Controleer DDNS-gebruikersnaam en wachtwoord.",
+      "invalid_hostname": "Ongeldige of onbekende hostnaam bij Infomaniak.",
+      "invalid_ip": "Ongeldig IPv4-adres. Verwacht formaat: 1.2.3.4",
+      "invalid_entity": "Ongeldige of lege entity_id.",
+      "unknown": "Onverwachte fout. Controleer de HA-logboeken."
+    },
+    "abort": {
+      "already_configured": "Deze DDNS-invoer is al geconfigureerd."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Infomaniak DDNS-opties",
+        "data": {
+          "update_url": "DDNS-update-URL",
+          "hostname": "DDNS-hostnaam",
+          "username": "DDNS-gebruikersnaam",
+          "password": "DDNS-wachtwoord",
+          "update_interval": "Update-interval (minuten)",
+          "ip_mode": "IP-adresbron"
+        }
+      },
+      "static_ip": {
+        "title": "Statisch IP-adres",
+        "data": {
+          "ip_static": "IPv4-adres"
+        }
+      },
+      "entity_ip": {
+        "title": "Home Assistant-entiteit",
+        "data": {
+          "ip_entity": "entity_id van IP-sensor"
+        }
+      },
+      "fast_detection": {
+        "title": "Snelle detectie van WAN-IP-wijzigingen",
+        "description": "Schakelt een periodieke snelle controle van het WAN-IP in (onafhankelijk van de normale updatecyclus) en dwingt een onmiddellijke DDNS-update af wanneer een wijziging wordt gedetecteerd. Selecteer de openbare diensten die bij toerbeurt moeten worden gebruikt om niet altijd dezelfde dienst te belasten.",
+        "data": {
+          "fast_detection": "Snelle detectie inschakelen",
+          "fast_interval": "Controle-interval (seconden)",
+          "ip_services": "Te gebruiken openbare IP-detectiediensten",
+          "custom_services_raw": "Aangepaste diensten (één URL per regel)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Kan de DDNS-server niet bereiken.",
+      "invalid_auth": "Ongeldige aanmeldgegevens.",
+      "invalid_hostname": "Ongeldige hostnaam.",
+      "invalid_ip": "Ongeldig IPv4-adres.",
+      "invalid_entity": "Ongeldige entity_id.",
+      "unknown": "Onverwachte fout."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "infomaniak_ddns_status": {
+        "name": "Status",
+        "state": {
+          "updated": "Bijgewerkt",
+          "unchanged": "Ongewijzigd",
+          "error": "Fout",
+          "unknown": "Onbekend"
+        },
+        "state_attributes": {
+          "hostname": { "name": "Hostnaam" },
+          "last_response": { "name": "Laatste antwoord" },
+          "last_error": { "name": "Laatste fout" },
+          "ip_source": { "name": "IP-bron" },
+          "ip_mode": { "name": "IP-modus" },
+          "update_count": { "name": "Aantal updates" },
+          "update_url": { "name": "Update-URL" },
+          "update_interval_minutes": { "name": "Update-interval (minuten)" },
+          "fast_detection_enabled": { "name": "Snelle detectie ingeschakeld" },
+          "fast_detection_interval_seconds": { "name": "Interval snelle detectie (seconden)" },
+          "ip_services_pool_size": { "name": "Omvang IP-dienstpool" }
+        }
+      },
+      "infomaniak_ddns_ip": {
+        "name": "IP-adres",
+        "state_attributes": {
+          "ip_source": { "name": "IP-bron" },
+          "ip_mode": { "name": "IP-modus" },
+          "last_known_wan_ip_fast_check": { "name": "Laatste WAN-IP (snelle controle)" }
+        }
+      }
+    }
+  }
+}
