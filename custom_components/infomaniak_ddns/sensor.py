@@ -4,10 +4,23 @@ from __future__ import annotations
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, CONF_HOSTNAME, CONF_IP_MODE, IP_MODE_AUTO, CONF_FAST_DETECTION
+from .const import (
+    CONF_FAST_DETECTION,
+    CONF_FAST_INTERVAL,
+    CONF_HOSTNAME,
+    CONF_IP_MODE,
+    CONF_UPDATE_INTERVAL,
+    CONF_UPDATE_URL,
+    DEFAULT_FAST_INTERVAL,
+    DEFAULT_UPDATE_INTERVAL,
+    DEFAULT_UPDATE_URL,
+    DOMAIN,
+    IP_MODE_AUTO,
+)
 from . import InfomaniakDDNSCoordinator
 
 
@@ -38,7 +51,7 @@ class InfomaniakDDNSBaseSensor(SensorEntity):
             name=f"Infomaniak DDNS – {self._hostname}",
             manufacturer="Infomaniak",
             model="DDNS",
-            entry_type="service",
+            entry_type=DeviceEntryType.SERVICE,
         )
 
     async def async_added_to_hass(self) -> None:
@@ -87,12 +100,16 @@ class InfomaniakDDNSStatusSensor(InfomaniakDDNSBaseSensor):
             "ip_source": self._coordinator.last_ip_source,
             "ip_mode": ip_mode,
             "update_count": self._coordinator.update_count,
-            "update_url": self._entry.data.get("update_url", "https://infomaniak.com/nic/update"),
-            "update_interval_minutes": self._entry.data.get("update_interval", 15),
-            # NOUVEAU : infos sur la détection rapide de changement d'IP WAN
+            "check_count": self._coordinator.check_count,
+            "update_url": self._entry.data.get(CONF_UPDATE_URL, DEFAULT_UPDATE_URL),
+            "update_interval_minutes": self._entry.data.get(
+                CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL
+            ),
             "fast_detection_enabled": self._entry.options.get(CONF_FAST_DETECTION, False),
-            "fast_detection_interval_seconds": self._entry.options.get("fast_interval", 60),
-            "ip_services_pool_size": getattr(self._coordinator, "_pool_size", None),
+            "fast_detection_interval_seconds": self._entry.options.get(
+                CONF_FAST_INTERVAL, DEFAULT_FAST_INTERVAL
+            ),
+            "ip_services_pool_size": self._coordinator.pool_size,
             "last_ip_service": self._coordinator.last_ip_service,
         }
 
@@ -117,9 +134,6 @@ class InfomaniakDDNSIPSensor(InfomaniakDDNSBaseSensor):
         return {
             "ip_source": self._coordinator.last_ip_source,
             "ip_mode": self._entry.data.get(CONF_IP_MODE, IP_MODE_AUTO),
-            # NOUVEAU : dernière IP WAN vue par le cycle de détection rapide
-            "last_known_wan_ip_fast_check": getattr(
-                self._coordinator, "_last_known_wan_ip", None
-            ),
+            "last_known_wan_ip_fast_check": self._coordinator.last_known_wan_ip,
             "last_ip_service": self._coordinator.last_ip_service,
         }

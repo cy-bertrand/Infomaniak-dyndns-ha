@@ -8,5 +8,5 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/cy-bertrand/Infomaniak-dyndns-ha/issues",
   "requirements": [],
-  "version": "1.5.1"
+  "version": "1.6.0"
 }

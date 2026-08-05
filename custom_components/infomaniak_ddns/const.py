@@ -2,6 +2,8 @@
 
 DOMAIN = "infomaniak_ddns"
 
+SERVICE_UPDATE = "update"
+
 CONF_UPDATE_URL = "update_url"
 CONF_HOSTNAME = "hostname"
 CONF_USERNAME = "username"

@@ -1,0 +1,11 @@
+update:
+  name: Update DDNS
+  description: Force an immediate Infomaniak DDNS update for one or all configured hostnames.
+  fields:
+    hostname:
+      name: Hostname
+      description: Optional DDNS hostname (FQDN) to update. If omitted, all configured entries are updated.
+      example: home.mydomain.com
+      required: false
+      selector:
+        text:

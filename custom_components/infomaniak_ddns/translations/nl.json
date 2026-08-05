@@ -102,6 +102,7 @@
           "ip_source": { "name": "IP-bron" },
           "ip_mode": { "name": "IP-modus" },
           "update_count": { "name": "Aantal updates" },
+          "check_count": { "name": "Aantal controles" },
           "update_url": { "name": "Update-URL" },
           "update_interval_minutes": { "name": "Update-interval (minuten)" },
           "fast_detection_enabled": { "name": "Snelle detectie ingeschakeld" },

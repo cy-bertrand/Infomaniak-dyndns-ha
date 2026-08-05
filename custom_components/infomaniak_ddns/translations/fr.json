@@ -102,6 +102,7 @@
           "ip_source": { "name": "Source de l'IP" },
           "ip_mode": { "name": "Mode de l'IP" },
           "update_count": { "name": "Nombre de mises à jour" },
+          "check_count": { "name": "Nombre de vérifications" },
           "update_url": { "name": "URL de mise à jour" },
           "update_interval_minutes": { "name": "Intervalle de mise à jour (minutes)" },
           "fast_detection_enabled": { "name": "Détection rapide activée" },

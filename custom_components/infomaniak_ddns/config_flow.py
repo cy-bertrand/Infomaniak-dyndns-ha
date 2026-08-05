@@ -1,19 +1,19 @@
 """Config flow for Infomaniak DDNS integration."""
 from __future__ import annotations
 
+import asyncio
 import logging
-import re
 from typing import Any
+from urllib.parse import urlencode
 
 import aiohttp
-import async_timeout
 import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers import selector, config_validation as cv
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
     DOMAIN,
@@ -39,16 +39,9 @@ from .const import (
     CONF_CUSTOM_SERVICES,
     IP_SERVICES_DEFAULT,
 )
+from .helpers import is_valid_ipv4, is_valid_service_url
 
 _LOGGER = logging.getLogger(__name__)
-
-_IPV4_RE = re.compile(r"^(\d{1,3}\.){3}\d{1,3}$")
-
-
-def _is_valid_ipv4(ip: str) -> bool:
-    if not _IPV4_RE.match(ip):
-        return False
-    return all(0 <= int(o) <= 255 for o in ip.split("."))
 
 
 async def _test_connection(hass: HomeAssistant, data: dict[str, Any]) -> dict[str, Any]:
@@ -58,17 +51,20 @@ async def _test_connection(hass: HomeAssistant, data: dict[str, Any]) -> dict[st
     username = data[CONF_USERNAME]
     password = data[CONF_PASSWORD]
 
-    url = f"{update_url}?hostname={hostname}"
+    params = {"hostname": hostname}
 
     ip_mode = data.get(CONF_IP_MODE, IP_MODE_AUTO)
     if ip_mode == IP_MODE_STATIC:
         ip = data.get(CONF_IP_STATIC, "").strip()
         if ip:
-            url += f"&myip={ip}"
+            params["myip"] = ip
+
+    separator = "&" if "?" in update_url else "?"
+    url = f"{update_url}{separator}{urlencode(params)}"
 
     session = async_get_clientsession(hass)
     try:
-        async with async_timeout.timeout(15):
+        async with asyncio.timeout(15):
             resp = await session.post(url, auth=aiohttp.BasicAuth(username, password))
             text = (await resp.text()).strip()
         _LOGGER.debug("Config flow validation response: %s", text)
@@ -81,7 +77,7 @@ async def _test_connection(hass: HomeAssistant, data: dict[str, Any]) -> dict[st
         if text.startswith("911") or text.startswith("abuse"):
             raise CannotConnect
         return {"title": f"Infomaniak DDNS - {hostname}"}
-    except asyncio.TimeoutError as err:
+    except TimeoutError as err:
         raise CannotConnect from err
     except aiohttp.ClientError as err:
         raise CannotConnect from err
@@ -210,7 +206,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             ip = user_input.get(CONF_IP_STATIC, "").strip()
-            if not _is_valid_ipv4(ip):
+            if not is_valid_ipv4(ip):
                 errors[CONF_IP_STATIC] = "invalid_ip"
             else:
                 self._data.update(user_input)
@@ -315,9 +311,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
             else:
-                self.hass.config_entries.async_update_entry(
-                    self.config_entry, data=merged
-                )
+                # Les modifications de données sont appliquées seulement à la
+                # dernière étape, pour ne rien écrire si l'utilisateur annule.
+                self._pending = merged
                 # continue vers l'étape détection rapide / services IP
                 return await self.async_step_fast_detection()
 
@@ -335,7 +331,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
         if user_input is not None:
             ip = user_input.get(CONF_IP_STATIC, "").strip()
-            if not _is_valid_ipv4(ip):
+            if not is_valid_ipv4(ip):
                 errors[CONF_IP_STATIC] = "invalid_ip"
             else:
                 merged = {**self.config_entry.data, **pending, **user_input}
@@ -350,9 +346,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 except Exception:
                     errors["base"] = "unknown"
                 else:
-                    self.hass.config_entries.async_update_entry(
-                        self.config_entry, data=merged
-                    )
+                    self._pending = merged
                     return await self.async_step_fast_detection()
 
         defaults = {**self.config_entry.data, **pending}
@@ -386,9 +380,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 except Exception:
                     errors["base"] = "unknown"
                 else:
-                    self.hass.config_entries.async_update_entry(
-                        self.config_entry, data=merged
-                    )
+                    self._pending = merged
                     return await self.async_step_fast_detection()
 
         defaults = {**self.config_entry.data, **pending}
@@ -406,14 +398,18 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             custom_raw = user_input.pop("custom_services_raw", "")
             custom_urls = [u.strip() for u in custom_raw.splitlines() if u.strip()]
-            valid_custom_urls = [
-                u for u in custom_urls if u.startswith("http://") or u.startswith("https://")
-            ]
+            valid_custom_urls = [u for u in custom_urls if is_valid_service_url(u)]
             if len(valid_custom_urls) != len(custom_urls):
                 _LOGGER.warning(
                     "Certaines URLs personnalisées ont été ignorées (format invalide)"
                 )
             user_input[CONF_CUSTOM_SERVICES] = valid_custom_urls
+
+            # Applique maintenant les modifications de données, le flow étant complet.
+            if pending := getattr(self, "_pending", None):
+                self.hass.config_entries.async_update_entry(
+                    self.config_entry, data=pending
+                )
 
             return self.async_create_entry(title="", data=user_input)
 

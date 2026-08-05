@@ -84,8 +84,34 @@ L'intervalle d'appel peut être définit entre 15 et 3600 secondes.
 | `sensor.infomaniak_ddns_<hostname>_ip` | IPv4 | Dernière IP enregistrée |
 
 ### Attributs
-- Attributs de `_status`: `hostname`, `last_response`, `last_error`, `ip_source`, `ip_mode`, `update_count`, `update_interval_minutes`, `fast_detection_enabled`, `fast_detection_interval_seconds`, `ip_services_pool_size`
-- Attributs de `_ip`: `last_known_wan_ip_fast_check`.
+- Attributs de `_status`: `hostname`, `last_response`, `last_error`, `ip_source`, `ip_mode`, `update_count`, `check_count`, `update_url`, `update_interval_minutes`, `fast_detection_enabled`, `fast_detection_interval_seconds`, `ip_services_pool_size`, `last_ip_service`
+- Attributs de `_ip`: `ip_source`, `ip_mode`, `last_known_wan_ip_fast_check`, `last_ip_service`.
+
+---
+
+## Service
+
+Un service est disponible pour forcer manuellement une mise à jour DDNS, sans attendre le cycle périodique :
+
+| Service | Description |
+|---|---|
+| `infomaniak_ddns.update` | Force une mise à jour DDNS immédiate |
+
+Données optionnelles :
+- `hostname` : FQDN à mettre à jour. Si omis, **toutes** les entrées configurées sont mises à jour.
+
+### Exemple
+
+```yaml
+action:
+  - service: infomaniak_ddns.update
+
+# ou, pour une entrée précise :
+action:
+  - service: infomaniak_ddns.update
+    data:
+      hostname: home.mondomaine.com
+```
 
 ---
 
@@ -216,9 +242,35 @@ The check interval can be defined between 15 and 3600 seconds.
 | `sensor.infomaniak_ddns_<hostname>_status` | `updated` / `unchanged` / `error` / `unknown` | Result of the last update |
 | `sensor.infomaniak_ddns_<hostname>_ip` | IPv4 | Last registered IP address |
 
-### Attributs
-- `_status`: `hostname`, `last_response`, `last_error`, `ip_source`, `ip_mode`, `update_count`, `update_interval_minutes`, `fast_detection_enabled`, `fast_detection_interval_seconds`, `ip_services_pool_size`
-- `_ip`: `last_known_wan_ip_fast_check`.
+### Attributes
+- `_status`: `hostname`, `last_response`, `last_error`, `ip_source`, `ip_mode`, `update_count`, `check_count`, `update_url`, `update_interval_minutes`, `fast_detection_enabled`, `fast_detection_interval_seconds`, `ip_services_pool_size`, `last_ip_service`
+- `_ip`: `ip_source`, `ip_mode`, `last_known_wan_ip_fast_check`, `last_ip_service`.
+
+---
+
+## Service
+
+A service is available to force a DDNS update manually, without waiting for the periodic cycle:
+
+| Service | Description |
+|---|---|
+| `infomaniak_ddns.update` | Force an immediate DDNS update |
+
+Optional data:
+- `hostname`: FQDN to update. If omitted, **all** configured entries are updated.
+
+### Example
+
+```yaml
+action:
+  - service: infomaniak_ddns.update
+
+# or, for a specific entry:
+action:
+  - service: infomaniak_ddns.update
+    data:
+      hostname: home.mydomain.com
+```
 
 ---
 
